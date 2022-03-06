@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
+#include <client.h>
 
 #define MAXLINE  511
 #define MAX_SOCK 1024 // 솔라리스의 경우 64
@@ -37,7 +38,7 @@ struct tm tm;
 //user coding1 start
 
 
-
+/*
 struct c_list
 {
 	int Num;
@@ -47,7 +48,7 @@ struct c_list
 	int in_s;
 
 };
-struct c_list cli[MAX_SOCK];
+struct c_list cli[MAX_SOCK];*/
 //user coding1 end
 
 void *thread_function(void *arg) { //명령어를 처리할 스레드
@@ -127,7 +128,7 @@ int main(int argc, char *argv[]) {
 			printf("<***client ID list***>\n");
 			printf("    일련번호    |    ID    |    접속시간    \n");
 			num_user+4;
-			for (k = 4;k < num_user+4; k++ s)
+			for (k = 4;k < num_user+4; k++)
 			{
 				printf("    %d    |    %s    |    %02d:%02d:%02d \n", cli[k].Num, cli[k].ID, cli[k].in_h, cli[k].in_m, cli[k].in_s);
 			}
