@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
+
 #define MAXLINE     1000
 #define NAME_LEN    20
 
@@ -43,19 +44,16 @@ int main(int argc, char *argv[]) {
 	FD_ZERO(&read_fds);
 	
 	//user coding 1 start
-	ct = time(NULL);	//현재 시간을 받아옴
-	tm = *localtime(&ct);
-	printf("[%02d:%02d:%02d]\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
-	char ID[MAXLINE];
-	strncpy(ID, argv[3], sizeof(argv[3]));
-	write(s, ID, strlen(ID)+1);
-	printf("내 일련번호 %d \n", maxfdp1);
+
+	write(s, argv[3], sizeof(argv[3]));
+	
 	//user coding 1 end
 
 
 	while (1) {
 		FD_SET(0, &read_fds);
 		FD_SET(s, &read_fds);
+
 		if (select(maxfdp1, &read_fds, NULL, NULL, NULL) < 0)
 			errquit("select fail");
 		if (FD_ISSET(s, &read_fds)) {
@@ -76,6 +74,7 @@ int main(int argc, char *argv[]) {
 				ct = time(NULL);	//현재 시간을 받아옴
 				tm = *localtime(&ct);
 				sprintf(bufall, "[%02d:%02d:%02d]%s>%s", tm.tm_hour, tm.tm_min, tm.tm_sec, argv[3], bufmsg);//메시지에 현재시간 추가
+				
 				if (send(s, bufall, strlen(bufall), 0) < 0)
 					puts("Error : Write error on socket.");
 				if (strstr(bufmsg, EXIT_STRING) != NULL) {
