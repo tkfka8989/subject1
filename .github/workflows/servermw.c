@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
-#include <client.h>
+
 
 #define MAXLINE  511
 #define MAX_SOCK 1024 // 솔라리스의 경우 64
@@ -36,9 +36,6 @@ time_t ct;
 struct tm tm;
 
 //user coding1 start
-
-
-/*
 struct c_list
 {
 	int Num;
@@ -48,7 +45,7 @@ struct c_list
 	int in_s;
 
 };
-struct c_list cli[MAX_SOCK];*/
+struct c_list cli[MAX_SOCK];
 //user coding1 end
 
 void *thread_function(void *arg) { //명령어를 처리할 스레드
@@ -113,21 +110,18 @@ int main(int argc, char *argv[]) {
 			
 			
 			//user coding2 start
-			
 			read(accp_sock, buf, MAX_SOCK);
-			//printf("receive : %s \n", buf);
+			strncpy(cli[accp_sock].ID, buf, sizeof(buf));
+			printf("receive : %s \n", buf);
 			
 			cli[accp_sock].Num = accp_sock;
-			strncpy(cli[accp_sock].ID, buf, sizeof(buf));
 			cli[accp_sock].in_h = tm.tm_hour;
 			cli[accp_sock].in_m = tm.tm_min;
 			cli[accp_sock].in_s = tm.tm_sec;
 			
 			printf("신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d\n", cli[accp_sock].Num, cli[accp_sock].in_h, cli[accp_sock].in_m, cli[accp_sock].in_s);
-
 			printf("<***client ID list***>\n");
 			printf("    일련번호    |    ID    |    접속시간    \n");
-			num_user+4;
 			for (k = 4;k < num_user+4; k++)
 			{
 				printf("    %d    |    %s    |    %02d:%02d:%02d \n", cli[k].Num, cli[k].ID, cli[k].in_h, cli[k].in_m, cli[k].in_s);
@@ -144,12 +138,6 @@ int main(int argc, char *argv[]) {
 			if (FD_ISSET(clisock_list[i], &read_fds)) {
 				num_chat++;				//총 대화 수 증가
 				nbyte = recv(clisock_list[i], buf, MAXLINE, 0);
-				
-				//user codingtest start
-				//printf("%s", buf);
-				//user codingtest end
-
-
 				if (nbyte <= 0) {
 					removeClient(i);	// 클라이언트의 종료
 					continue;
@@ -177,10 +165,6 @@ int main(int argc, char *argv[]) {
 void addClient(int s, struct sockaddr_in *newcliaddr) {
 	char buf[20];
 	inet_ntop(AF_INET, &newcliaddr->sin_addr, buf, sizeof(buf));
-	
-	//write(1, "\033[0G", 4);		//커서의 X좌표를 0으로 이동
-	//printf("new client: %s\n", buf);//ip출력
-	
 	// 채팅 클라이언트 목록에 추가
 	clisock_list[num_user] = s;
 	strcpy(ip_list[num_user], buf);
