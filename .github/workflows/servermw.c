@@ -46,6 +46,7 @@ struct c_list
 
 };
 struct c_list cli[MAX_SOCK];
+memset(&cli, 0, sizeof(cli));
 //user coding1 end
 
 void *thread_function(void *arg) { //명령어를 처리할 스레드
@@ -73,7 +74,7 @@ void *thread_function(void *arg) { //명령어를 처리할 스레드
 int main(int argc, char *argv[]) {
 	struct sockaddr_in cliaddr;
 	char buf[MAXLINE + 1]; //클라이언트에서 받은 메시지
-	int i, j, k, nbyte, accp_sock, addrlen = sizeof(struct
+	int i, j, nbyte, accp_sock, addrlen = sizeof(struct
 		sockaddr_in);
 	fd_set read_fds;	//읽기를 감지할 fd_set 구조체
 	pthread_t a_thread;
@@ -102,31 +103,53 @@ int main(int argc, char *argv[]) {
 				(struct sockaddr*)&cliaddr, &addrlen);
 			if (accp_sock == -1) errquit("accept fail");
 			addClient(accp_sock, &cliaddr);
-			send(accp_sock, START_STRING, strlen(START_STRING), 0);
+			//send(accp_sock, START_STRING, strlen(START_STRING), 0);
 			ct = time(NULL);			//현재 시간을 받아옴
 			tm = *localtime(&ct);
 			write(1, "\033[0G", 4);		//커서의 X좌표를 0으로 이동
-			//printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-			
-			
 			//user coding2 start
+			sprintf(buf, "%d" , accp_sock);
+			send(accp_sock, buf, strlen(buf), 0);
+			
+			
+			
 			read(accp_sock, buf, MAX_SOCK);
 			strncpy(cli[accp_sock].ID, buf, sizeof(buf));
-			printf("receive : %s \n", buf);
+
 			
 			cli[accp_sock].Num = accp_sock;
 			cli[accp_sock].in_h = tm.tm_hour;
 			cli[accp_sock].in_m = tm.tm_min;
 			cli[accp_sock].in_s = tm.tm_sec;
+
+
 			
+			
+			for(i=4 ; i < num_user+4; i++){
+				sprintf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d\n", cli[accp_sock].Num, cli[accp_sock].in_h, cli[accp_sock].in_m, cli[accp_sock].in_s);
+				write(i, buf, strlen(buf));
+				sprintf(buf, "<***client ID list***>\n");
+				write(i, buf, strlen(buf));
+				sprintf(buf, "    ID    |    USERNAME    |    접속시간    \n");
+				write(i, buf, strlen(buf));
+			
+				for (j = 4;j < num_user+4; j++)
+				{
+					sprintf(buf, "    %d    |    %s    |    %02d:%02d:%02d \n", cli[j].Num, cli[j].ID, cli[j].in_h, cli[j].in_m, cli[j].in_s);
+					write(i, buf, strlen(buf));
+				}
+			}
+
 			printf("신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d\n", cli[accp_sock].Num, cli[accp_sock].in_h, cli[accp_sock].in_m, cli[accp_sock].in_s);
 			printf("<***client ID list***>\n");
 			printf("    일련번호    |    ID    |    접속시간    \n");
-			for (k = 4;k < num_user+4; k++)
+			for (j = 4;j < num_user+4; j++)
 			{
-				printf("    %d    |    %s    |    %02d:%02d:%02d \n", cli[k].Num, cli[k].ID, cli[k].in_h, cli[k].in_m, cli[k].in_s);
+				printf("    %d    |    %s    |    %02d:%02d:%02d \n", cli[j].Num, cli[j].ID, cli[j].in_h, cli[j].in_m, cli[j].in_s);
 			}
 			
+			
+
 			//user coding2 end
 
 			printf("사용자 1명 추가. 현재 참가자 수 = %d\n", num_user);
@@ -139,12 +162,28 @@ int main(int argc, char *argv[]) {
 				num_chat++;				//총 대화 수 증가
 				nbyte = recv(clisock_list[i], buf, MAXLINE, 0);
 				if (nbyte <= 0) {
+					//user coding3 start
+
+					for(i=4 ; i < num_user+4; i++){
+						sprintf(buf, "유저퇴장!! id -> %d\n", accp_sock);
+						write(i, buf, strlen(buf));
+					}
+
+					//user coding3 end
 					removeClient(i);	// 클라이언트의 종료
 					continue;
 				}
 				buf[nbyte] = 0;
 				// 종료문자 처리
 				if (strstr(buf, EXIT_STRING) != NULL) {
+					//user coding3 start
+
+					for(i=4 ; i < num_user+4; i++){
+						sprintf(buf, "유저퇴장!! id -> %d\n", accp_sock);
+						write(i, buf, strlen(buf));
+					}
+
+					//user coding3 end
 					removeClient(i);	// 클라이언트의 종료
 					continue;
 				}
@@ -173,21 +212,13 @@ void addClient(int s, struct sockaddr_in *newcliaddr) {
 
 // 채팅 탈퇴 처리
 void removeClient(int s) {
+	
 	close(clisock_list[s]);
 	if (s != num_user - 1) { //저장된 리스트 재배열
 		clisock_list[s] = clisock_list[num_user - 1];
 		strcpy(ip_list[s], ip_list[num_user - 1]);
 	}
-
-	//user coding3 start
-	cli[s].Num = 0;
-	strncpy(cli[s].ID, "NULL", sizeof("NULL"));
-	cli[s].in_h = 0;
-	cli[s].in_m = 0;
-	cli[s].in_s = 0;
-	//user coding3 end
-
-
+	
 	num_user--; //유저 수 감소
 	ct = time(NULL);			//현재 시간을 받아옴
 	tm = *localtime(&ct);
