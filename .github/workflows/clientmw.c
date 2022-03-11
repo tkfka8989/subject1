@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-
+#define MAX_SOCK 1024
 #define MAXLINE     1000
 #define NAME_LEN    20
 
@@ -18,6 +18,7 @@ char *EXIT_STRING = "exit";
 // 소켓 생성 및 서버 연결, 생성된 소켓리턴
 int tcp_connect(int af, char *servip, unsigned short port);
 void errquit(char *mesg) { perror(mesg); exit(1); }
+
 
 int main(int argc, char *argv[]) {
 	char bufname[NAME_LEN];	// 이름
@@ -44,8 +45,11 @@ int main(int argc, char *argv[]) {
 	FD_ZERO(&read_fds);
 	
 	//user coding 1 start
-
+	
 	write(s, argv[3], sizeof(argv[3]));
+	char Num[20];
+	read(s, bufmsg, MAXLINE);
+	strncpy(Num, bufmsg, sizeof(bufmsg));
 	
 	//user coding 1 end
 
@@ -63,7 +67,7 @@ int main(int argc, char *argv[]) {
 				write(1, "\033[0G", 4);		//커서의 X좌표를 0으로 이동
 				printf("%s", bufmsg);		//메시지 출력
 				fprintf(stderr, "\033[1;32m");	//글자색을 녹색으로 변경
-				fprintf(stderr, "%s>", argv[3]);//내 닉네임 출력
+				fprintf(stderr, "[%s, %s]", Num, argv[3]);//내 닉네임 출력
 
 			}
 		}
@@ -73,7 +77,7 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "\033[1A"); //Y좌표를 현재 위치로부터 -1만큼 이동
 				ct = time(NULL);	//현재 시간을 받아옴
 				tm = *localtime(&ct);
-				sprintf(bufall, "[%02d:%02d:%02d]%s>%s", tm.tm_hour, tm.tm_min, tm.tm_sec, argv[3], bufmsg);//메시지에 현재시간 추가
+				sprintf(bufall, "[%s, %s]%s", Num, argv[3], bufmsg);//메시지에 현재시간 추가
 				
 				if (send(s, bufall, strlen(bufall), 0) < 0)
 					puts("Error : Write error on socket.");
