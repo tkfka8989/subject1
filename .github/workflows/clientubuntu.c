@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 	char Num[20];
 	read(s, bufmsg, MAXLINE);
 	strncpy(Num, bufmsg, sizeof(bufmsg));
-	
+	printf("명령어 : user_list(유저목록), exit(나가기)\n");
 	//user coding 1 end
 
 
@@ -66,14 +66,12 @@ int main(int argc, char *argv[]) {
 				bufmsg[nbyte] = 0;
 				write(1, "\033[0G", 4);		//커서의 X좌표를 0으로 이동
 				printf("%s", bufmsg);		//메시지 출력
-				fprintf(stderr, "\033[1;32m");	//글자색을 녹색으로 변경
 				fprintf(stderr, "[%s, %s]", Num, argv[3]);//내 닉네임 출력
 
 			}
 		}
 		if (FD_ISSET(0, &read_fds)) {
 			if (fgets(bufmsg, MAXLINE, stdin)) {
-				fprintf(stderr, "\033[1;33m"); //글자색을 노란색으로 변경
 				fprintf(stderr, "\033[1A"); //Y좌표를 현재 위치로부터 -1만큼 이동
 				ct = time(NULL);	//현재 시간을 받아옴
 				tm = *localtime(&ct);
