@@ -11,14 +11,16 @@
 #include <time.h>
 
 #define MAX_SOCK 1024
-#define MAXLINE     1000
-#define NAME_LEN    20
+#define MAXLINE 1000
+#define NAME_LEN 20
 
+time_t ct;
+struct tm tm;
 char *EXIT_STRING = "exit";
 // 소켓 생성 및 서버 연결, 생성된 소켓리턴
 int tcp_connect(int af, char *servip, unsigned short port);
 void errquit(char *mesg) { perror(mesg); exit(1); }
-
+void write_log(char* message);
 
 int main(int argc, char *argv[]) {
 	char bufname[NAME_LEN];	// 이름
@@ -28,8 +30,7 @@ int main(int argc, char *argv[]) {
 	int s;		// 소켓
 	int namelen;	// 이름의 길이
 	fd_set read_fds;
-	time_t ct;
-	struct tm tm;
+	
 
 	if (argc != 4) {
 		printf("사용법 : %s sever_ip  port name \n", argv[0]);
@@ -44,20 +45,16 @@ int main(int argc, char *argv[]) {
 	maxfdp1 = s + 1;
 	FD_ZERO(&read_fds);
 	
-	//user coding 1 start
-	
 	write(s, argv[3], sizeof(argv[3]));
 	char Num[20];
 	read(s, bufmsg, MAXLINE);
 	strncpy(Num, bufmsg, sizeof(bufmsg));
 	printf("명령어 : user_list(유저목록), exit(나가기)\n");
-	//user coding 1 end
-
+	
 
 	while (1) {
 		FD_SET(0, &read_fds);
 		FD_SET(s, &read_fds);
-
 		if (select(maxfdp1, &read_fds, NULL, NULL, NULL) < 0)
 			errquit("select fail");
 		if (FD_ISSET(s, &read_fds)) {
@@ -73,9 +70,7 @@ int main(int argc, char *argv[]) {
 		if (FD_ISSET(0, &read_fds)) {
 			if (fgets(bufmsg, MAXLINE, stdin)) {
 				fprintf(stderr, "\033[1A"); //Y좌표를 현재 위치로부터 -1만큼 이동
-				ct = time(NULL);	//현재 시간을 받아옴
-				tm = *localtime(&ct);
-				int ret = snprintf(bufall, 20, "[%s, %s]%s", Num, argv[3], bufmsg);//메시지에 현재시간 추가
+				int ret = snprintf(bufall, 20, "[%s, %s]%s", Num, argv[3], bufmsg);//메시지에 ID 추가
 				if (ret < 0) {
          				abort();
     				}
@@ -110,3 +105,4 @@ int tcp_connect(int af, char *servip, unsigned short port) {
 		return -1;
 	return s;
 }
+
