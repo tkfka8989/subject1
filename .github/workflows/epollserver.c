@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <time.h>
+#include "db_input.h"
+
+
 #define USER_LIST "user_list"
 #define BUF_SIZE 511 
 #define EPOLL_SIZE 50
@@ -21,6 +24,13 @@ struct c_list
 	int in_s;
 
 };
+
+//user coding
+char client_id[150];
+char client_name[150];
+char client_time[150];
+//user coding
+
 struct c_list cli[MAX_SOCK];
 time_t ct;
 struct tm tm;
@@ -30,6 +40,7 @@ void user_list(int user);
 int getmax(int sock);
 void write_log(char* log);
 void clntlist_s(int clnt_sock, int number);
+
 
 int main(int argc, char* argv[])
 {
@@ -98,6 +109,14 @@ int main(int argc, char* argv[])
 				cli[clnt_sock].in_h = tm.tm_hour;
 				cli[clnt_sock].in_m = tm.tm_min;
 				cli[clnt_sock].in_s = tm.tm_sec;
+				
+				//user coding
+				sprintf(client_id,"%d",clnt_sock);
+				snprintf(client_name,550,"%s", buf);
+				sprintf(client_time,"%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+				db_input(client_id, client_name, client_time);
+				//user coding
+				
 				maxfdp1 = getmax(clnt_sock) + 1;
 				event.events = EPOLLIN;
 				event.data.fd = clnt_sock;
@@ -110,7 +129,7 @@ int main(int argc, char* argv[])
 				
 				}
 				write_log(buf);
-				void clntlist_s(clnt_sock, clntCnt);
+				db_out();
 			}
 			else
 			{
@@ -205,31 +224,12 @@ void write_log(char* log)
 	char title[100];
 	ct = time(NULL);			//현재 시간을 받아옴
 	tm = *localtime(&ct);
-	sprintf(title, "chat_log_%04d%02d%02d.log",tm.tm_year+1900,tm.tm_mon,tm.tm_mday);
+	sprintf(title, "chat_log_%04d%02d%02d.log",tm.tm_year+1900,tm.tm_mon+1,tm.tm_mday);
 	
 
 	FILE *fp = fopen(title, "a");
 	fprintf(fp, "[%02d:%02d:%02d]%s\n", tm.tm_hour, tm.tm_min, tm.tm_sec, log);
 	fclose(fp);
-}
-
-//서버측 리스트
-void clntlist_s(int clnt_sock, int number){
-	int k;
-	char buf[MACK_SOCK];
-	memset(buf, 0, sizeof(buf));
-	printf("connected client: %d \n", clnt_sock);
-	//write_log(buf);
-	printf("<***client ID list***>\n");
-	//write_log(buf);
-	printf("    ID    |    USERNAME    |    접속시간    \n");
-	//write_log(buf);
-	for (k = 5;k < number+5; k++)
-	{
-		printf("    %02d    |    %-8s    |    %02d:%02d:%02d \n", cli[k].ID, cli[k].username, cli[k].in_h, cli[k].in_m, cli[k].in_s);
-		//write_log(buf);	
-	}
-
 }
 
 void error_handling(char *buf)
