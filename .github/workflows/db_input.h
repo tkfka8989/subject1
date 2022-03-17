@@ -1,14 +1,20 @@
 #include <mysql/mysql.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
-
+#define MAX_SOCK 1024
 #define DB_HOST "localhost"
 #define DB_USER "testdb"
 #define DB_PASS "testdb123!"
 #define DB_NAME "testdb"
 #define CHOP(x) x[strlen(x)] = ' '
-    
+
+time_t ct;
+struct tm tm;
+void writelog(char* log);
+
+
 int db_input(char id[100], char name[100], char time[100])
 {
     MYSQL       *connection=NULL, conn;
@@ -101,3 +107,17 @@ int db_out(void)
     mysql_free_result(sql_result);
     mysql_close(connection);
 }
+
+//로그남기기
+void writelog(char* log)
+{
+	char title[100];
+	ct = time(NULL);			//현재 시간을 받아옴
+	tm = *localtime(&ct);
+	sprintf(title, "chat_log_%04d%02d%02d.log",tm.tm_year+1900,tm.tm_mon+1,tm.tm_mday);
+	
+
+	FILE *fp = fopen(title, "a");
+	fprintf(fp, "[%02d:%02d:%02d]%s\n", tm.tm_hour, tm.tm_min, tm.tm_sec, log);
+	fclose(fp);
+} 
