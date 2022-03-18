@@ -18,7 +18,6 @@ void error_handling(char* buf);
 struct c_list
 {
 	int ID;
-	char username[MAX_SOCK+5];
 	int in_h;
 	int in_m;
 	int in_s;
@@ -36,10 +35,8 @@ time_t ct;
 struct tm tm;
 int clntCnt=0;	
 int maxfdp1 = 0;
-void user_list(int user);
 int getmax(int sock);
 void write_log(char* log);
-void clntlist_s(int clnt_sock, int number);
 
 
 int main(int argc, char* argv[])
@@ -49,9 +46,8 @@ int main(int argc, char* argv[])
 	socklen_t adr_sz;
 	int str_len, i, j, k;
 	char buf[BUF_SIZE];
-
+	char log_buf[BUF_SIZE];
 	int clntNumber[MAX_CLNT];
-	int clntCnt=0;	
 
 	struct epoll_event* ep_events;
 	struct epoll_event event;
@@ -60,6 +56,8 @@ int main(int argc, char* argv[])
 	if(argc!=2)
 	{
 		printf("Usage : %s <port>\n", argv[0]);
+		sprintf(log_buf, "Usage : %s <port>\n", argv[0]);
+		write_log(log_buf);
 		exit(1);
 	}
 
@@ -70,11 +68,13 @@ int main(int argc, char* argv[])
 	serv_adr.sin_port = htons(atoi(argv[1]));
 
 	if(bind(serv_sock, (struct sockaddr*) &serv_adr, sizeof(serv_adr))==-1)
+	{
 		error_handling("bind() error");
-	
+	}
 	if(listen(serv_sock, 5)==-1)
+	{
 		error_handling("bind() error");
-
+	}
 	epfd = epoll_create(EPOLL_SIZE);
 	ep_events=malloc(sizeof(struct epoll_event)*EPOLL_SIZE);
 
@@ -89,10 +89,12 @@ int main(int argc, char* argv[])
 		if(event_cnt==-1)
 		{
 			puts("epoll_wait() error");
+			sprintf(log_buf, "epoll_wait() error");
+			write_log(log_buf);
 			break;
 		}
 		
-		puts("return epoll_wait (by Level Trigger Method)");
+		
 		for(i=0; i<event_cnt; i++)
 		{
 			if(ep_events[i].data.fd==serv_sock)
@@ -104,7 +106,7 @@ int main(int argc, char* argv[])
 				sprintf(buf, "%d" , clnt_sock);
 				send(clnt_sock, buf, strlen(buf), 0);
 				read(clnt_sock, buf, MAX_SOCK);
-				strncpy(cli[clnt_sock].username, buf, sizeof(buf));
+				
 				cli[clnt_sock].ID = clnt_sock;
 				cli[clnt_sock].in_h = tm.tm_hour;
 				cli[clnt_sock].in_m = tm.tm_min;
@@ -122,14 +124,15 @@ int main(int argc, char* argv[])
 				event.data.fd = clnt_sock;
 				epoll_ctl(epfd, EPOLL_CTL_ADD, clnt_sock, &event);
 				clntNumber[clntCnt++]=clnt_sock;
-				sleep(1);
+				
 				for(j=5 ; j < clntCnt+5; j++){
-					sprintf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n\n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
+					sprintf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
 					write(j, buf, strlen(buf));
 				
 				}
 				write_log(buf);
-				db_out();
+				db_output();
+				memset(buf, 0 , sizeof(buf));
 			}
 			else
 			{
@@ -147,11 +150,11 @@ int main(int argc, char* argv[])
 							tm = *localtime(&ct);
 							for(k=5 ; k < maxfdp1; k++){
 								sprintf(buf, "접속종료!! id -> %d , 종료시간 -> %02d:%02d:%02d\n", cli[ep_events[i].data.fd].ID, tm.tm_hour, tm.tm_min, tm.tm_sec);
-								write(j, buf, strlen(buf));
+								write(k, buf, strlen(buf));
 								
 							}
-							write_log(buf);
-							strncpy(cli[ep_events[i].data.fd].username, "NULL", sizeof("NULL"));
+							
+							db_delete(ep_events[i].data.fd);
 							cli[ep_events[i].data.fd].ID = 0;
 							cli[ep_events[i].data.fd].in_h = 0;
 							cli[ep_events[i].data.fd].in_m = 0;
@@ -159,13 +162,16 @@ int main(int argc, char* argv[])
 							clntCnt--;
 							break;
 						}
-					}	
+					}
+					
 					printf("closed client: %d \n", ep_events[i].data.fd);
-					//write_log(buf);
+					sprintf(log_buf, "closed client: %d \n", ep_events[i].data.fd);
+					write_log(log_buf);
+					write_log(buf);
 				}
 				if (strstr(buf, USER_LIST) != NULL){
-					user_list(ep_events[i].data.fd);
-					memset(buf, 0 , sizeof(buf));
+					write_log(buf);
+					db_output_cl(ep_events[i].data.fd);
 					
 				}
 				else
@@ -176,6 +182,7 @@ int main(int argc, char* argv[])
 					}
 					write_log(buf);
 				}
+			memset(buf, 0 , sizeof(buf));
 			}
 		}
 	}
@@ -185,28 +192,6 @@ int main(int argc, char* argv[])
 }
 
 
-//유저리스트
-void user_list(int user){
-	int i, j;
-	char buf[MAX_SOCK];
-
-	sprintf(buf, "<***client ID list***>\n");
-	write(user, buf, strlen(buf));
-	write_log(buf);
-	sprintf(buf, "    ID    |    USERNAME    |    접속시간    \n");
-	write(user, buf, strlen(buf));
-	write_log(buf);
-	for (j = 5;j < maxfdp1; j++){
-		int ret = snprintf(buf, 50, "    %02d    |    %-8s    |    %02d:%02d:%02d \n", cli[j].ID, cli[j].username, cli[j].in_h, cli[j].in_m, cli[j].in_s);
-		write(user, buf, strlen(buf));
-		write_log(buf);
-		if (ret < 0) {
-         		abort();
-    		}
-	}
-	
-
-}
 
 // 최대 소켓번호 찾기
 int getmax(int sock) {
@@ -236,6 +221,7 @@ void error_handling(char *buf)
 {
 	fputs(buf, stderr);
 	fputc('\n', stderr);
+	write_log(buf);
 	exit(1);
 } 
 
