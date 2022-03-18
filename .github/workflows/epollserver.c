@@ -125,8 +125,6 @@ int main(int argc, char* argv[])
 				epoll_ctl(epfd, EPOLL_CTL_ADD, clnt_sock, &event);
 				clntNumber[clntCnt++]=clnt_sock;
 				printf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
-				sprintf(log_buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
-				write_log(log_buf);
 					
 				for(j=5 ; j < clntCnt+5; j++){
 					sprintf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
