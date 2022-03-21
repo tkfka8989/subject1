@@ -47,12 +47,15 @@ int main(int argc, char *argv[])
 	  
 	if(connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))==-1)
 		error_handling("connect() error");
-	printf("명령어 : user_list(유저목록), exit(종료)\n");
-	sprintf(log_buf, "명령어 : user_list(유저목록), exit(종료)\n");
+	printf("명령어 : user_list(유저목록), exit(종료), possible(대화가능 상태로 변경), impossible(대화불가능 상태로 변경)\n");
+	sprintf(log_buf, "명령어 : user_list(유저목록), exit(종료), possible(대화가능 상태로 변경), impossible(대화불가능 상태로 변경)\n");
 	write_log(log_buf);
 	write(sock, argv[3], sizeof(argv[3]));
+	sleep(1);
+	write(sock, argv[1], sizeof(argv[1])+8);
 	memset(bufmsg, 0, sizeof(bufmsg));
 	read(sock, bufmsg, MAXLINE);
+	
 	strncpy(Num, bufmsg, sizeof(bufmsg));
 	snprintf(name, 130, "[%s, %s]", Num, argv[3]);
 
