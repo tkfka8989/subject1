@@ -8,7 +8,6 @@
 #include <time.h>
 #include "db_input.h"
 
-
 #define USER_LIST "user_list"
 #define BUF_SIZE 511 
 #define EPOLL_SIZE 50
@@ -25,9 +24,12 @@ struct c_list
 };
 
 //user coding
-char client_id[150];
-char client_name[150];
-char client_time[150];
+char client_id[20];
+char client_name[20];
+char client_time[20];
+char client_ip[30];
+char POSSIBLE[20];
+char IMPOSSIBLE[20];
 //user coding
 
 struct c_list cli[MAX_SOCK];
@@ -41,6 +43,8 @@ void write_log(char* log);
 
 int main(int argc, char* argv[])
 {
+	strcpy(POSSIBLE, "possible");
+	strcpy(IMPOSSIBLE, "impossible");
 	int serv_sock, clnt_sock;
 	struct sockaddr_in serv_adr, clnt_adr;
 	socklen_t adr_sz;
@@ -66,6 +70,7 @@ int main(int argc, char* argv[])
 	serv_adr.sin_family = AF_INET;
 	serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serv_adr.sin_port = htons(atoi(argv[1]));
+
 
 	if(bind(serv_sock, (struct sockaddr*) &serv_adr, sizeof(serv_adr))==-1)
 	{
@@ -106,18 +111,17 @@ int main(int argc, char* argv[])
 				sprintf(buf, "%d" , clnt_sock);
 				send(clnt_sock, buf, strlen(buf), 0);
 				read(clnt_sock, buf, MAX_SOCK);
-				
+				snprintf(client_name,550,"%s", buf);
 				cli[clnt_sock].ID = clnt_sock;
 				cli[clnt_sock].in_h = tm.tm_hour;
 				cli[clnt_sock].in_m = tm.tm_min;
 				cli[clnt_sock].in_s = tm.tm_sec;
-				
-				//user coding
+				sleep(1);
+				read(clnt_sock, buf, MAX_SOCK);
+				sprintf(client_ip,"%s",buf);
 				sprintf(client_id,"%d",clnt_sock);
-				snprintf(client_name,550,"%s", buf);
 				sprintf(client_time,"%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
-				db_input(client_id, client_name, client_time);
-				//user coding
+				db_input(client_id, client_name, client_time, client_ip);
 				
 				maxfdp1 = getmax(clnt_sock) + 1;
 				event.events = EPOLLIN;
@@ -133,7 +137,7 @@ int main(int argc, char* argv[])
 				}
 				write_log(buf);
 				db_output();
-				memset(buf, 0 , sizeof(buf));
+				
 			}
 			else
 			{
@@ -169,6 +173,18 @@ int main(int argc, char* argv[])
 					sprintf(log_buf, "closed client: %d \n", ep_events[i].data.fd);
 					write_log(log_buf);
 					write_log(buf);
+				}
+				sprintf(client_id,"%d",ep_events[i].data.fd);
+				
+				if (strstr(buf, POSSIBLE) != NULL){
+					
+					db_state(ep_events[i].data.fd, POSSIBLE);
+					
+				}
+				if (strstr(buf, IMPOSSIBLE) != NULL){
+					
+					db_state(ep_events[i].data.fd, IMPOSSIBLE);
+					
 				}
 				if (strstr(buf, USER_LIST) != NULL){
 					write_log(buf);
@@ -225,4 +241,3 @@ void error_handling(char *buf)
 	write_log(buf);
 	exit(1);
 } 
-
