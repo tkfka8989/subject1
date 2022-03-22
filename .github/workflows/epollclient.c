@@ -7,7 +7,6 @@
 #include <pthread.h>
 #include <time.h>
 
-
 #define MAXLINE 1000
 #define BUF_SIZE 1000
 #define NAME_SIZE 2000
@@ -38,7 +37,6 @@ int main(int argc, char *argv[])
 		exit(1);
 	 }
 	
-	
 	sock=socket(PF_INET, SOCK_STREAM, 0);
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family=AF_INET;
@@ -47,12 +45,12 @@ int main(int argc, char *argv[])
 	  
 	if(connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))==-1)
 		error_handling("connect() error");
-	printf("명령어 : user_list(유저목록), exit(종료), possible(대화가능 상태로 변경), impossible(대화불가능 상태로 변경)\n");
-	sprintf(log_buf, "명령어 : user_list(유저목록), exit(종료), possible(대화가능 상태로 변경), impossible(대화불가능 상태로 변경)\n");
+	printf("명령어 : user_list(유저목록), exit(종료), on_line(대화가능 상태로 변경), off_line(대화불가능 상태로 변경)\n");
+	sprintf(log_buf, "명령어 : user_list(유저목록), exit(종료), on_line(대화가능 상태로 변경), off_line(대화불가능 상태로 변경)\n");
 	write_log(log_buf);
 	write(sock, argv[3], sizeof(argv[3]));
 	sleep(1);
-	write(sock, argv[1], sizeof(argv[1])+8);
+	write(sock, argv[1], strlen(argv[1]));
 	memset(bufmsg, 0, sizeof(bufmsg));
 	read(sock, bufmsg, MAXLINE);
 	
@@ -89,7 +87,6 @@ void * send_msg(void * arg)   // send thread main
 			write(sock, name_msg, strlen(name_msg));
 			write_log(name_msg);
 		}
-		
 	}
 	return NULL;
 }
@@ -108,7 +105,6 @@ void * recv_msg(void * arg)   // read thread main
 		write(1, "\033[0G", 4);
 		fputs(name_msg, stdout);
 		fprintf(stderr, "%s", name);
-		
 	}
 	return NULL;
 }
@@ -119,10 +115,10 @@ void write_log(char* log)
 	char title[100];
 	ct = time(NULL);			//현재 시간을 받아옴
 	tm = *localtime(&ct);
+    //파일 이름 설정
 	sprintf(title, "chat_log_%04d%02d%02d.log",tm.tm_year+1900,tm.tm_mon+1,tm.tm_mday);
-	
-
 	FILE *fp = fopen(title, "a");
+    //파일에 현재시간을 포함한 콘솔내용 입력
 	fprintf(fp, "[%02d:%02d:%02d]%s\n", tm.tm_hour, tm.tm_min, tm.tm_sec, log);
 	fclose(fp);
 }
