@@ -8,6 +8,8 @@
 #include <time.h>
 #include "db_input.h"
 
+#define on_state "on_line"
+#define off_state "off_line"
 #define USER_LIST "user_list"
 #define BUF_SIZE 511 
 #define EPOLL_SIZE 50
@@ -23,14 +25,12 @@ struct c_list
 
 };
 
-//user coding
 char client_id[20];
 char client_name[20];
 char client_time[20];
 char client_ip[30];
-char POSSIBLE[20];
-char IMPOSSIBLE[20];
-//user coding
+char ONLINE[20];
+char OFFLINE[20];
 
 struct c_list cli[MAX_SOCK];
 time_t ct;
@@ -39,23 +39,23 @@ int clntCnt=0;
 int maxfdp1 = 0;
 int getmax(int sock);
 void write_log(char* log);
-
+void client_data(int id, int value, int hour, int min, int sec);
 
 int main(int argc, char* argv[])
 {
-	strcpy(POSSIBLE, "possible");
-	strcpy(IMPOSSIBLE, "impossible");
+	strcpy(ONLINE, "online");
+	strcpy(OFFLINE, "offline");
 	int serv_sock, clnt_sock;
+    int str_len, i, j, k;
+    int clntNumber[MAX_CLNT];
+    int epfd, event_cnt;
 	struct sockaddr_in serv_adr, clnt_adr;
 	socklen_t adr_sz;
-	int str_len, i, j, k;
-	char buf[BUF_SIZE];
-	char log_buf[BUF_SIZE];
-	int clntNumber[MAX_CLNT];
-
 	struct epoll_event* ep_events;
 	struct epoll_event event;
-	int epfd, event_cnt;
+	char buf[BUF_SIZE];
+	char log_buf[BUF_SIZE];
+    char state_buf[BUF_SIZE];
 	
 	if(argc!=2)
 	{
@@ -86,24 +86,26 @@ int main(int argc, char* argv[])
 	event.events = EPOLLIN;
 	event.data.fd = serv_sock;
 	epoll_ctl(epfd, EPOLL_CTL_ADD, serv_sock, &event);
-	memset(buf, 0 , sizeof(buf));
+    printf("서버에 연결되었습니다.\n");
+    sprintf(log_buf, "서버에 연결되었습니다.\n");
+    write_log(log_buf);
 
 	while(1)
 	{
 		event_cnt=epoll_wait(epfd, ep_events, EPOLL_SIZE, -1);
 		if(event_cnt==-1)
 		{
-			puts("epoll_wait() error");
-			sprintf(log_buf, "epoll_wait() error");
-			write_log(log_buf);
+			error_handling("epoll_wait() error");
 			break;
 		}
 		
 		
 		for(i=0; i<event_cnt; i++)
 		{
+            memset(buf, 0 , sizeof(buf));
 			if(ep_events[i].data.fd==serv_sock)
 			{
+                
 				adr_sz=sizeof(clnt_adr);
 				clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_adr, &adr_sz);
 				ct = time(NULL);
@@ -112,10 +114,8 @@ int main(int argc, char* argv[])
 				send(clnt_sock, buf, strlen(buf), 0);
 				read(clnt_sock, buf, MAX_SOCK);
 				snprintf(client_name,550,"%s", buf);
-				cli[clnt_sock].ID = clnt_sock;
-				cli[clnt_sock].in_h = tm.tm_hour;
-				cli[clnt_sock].in_m = tm.tm_min;
-				cli[clnt_sock].in_s = tm.tm_sec;
+                db_delete(clnt_sock);
+				client_data(clnt_sock, clnt_sock, tm.tm_hour, tm.tm_min, tm.tm_sec);
 				sleep(1);
 				read(clnt_sock, buf, MAX_SOCK);
 				sprintf(client_ip,"%s",buf);
@@ -128,19 +128,19 @@ int main(int argc, char* argv[])
 				event.data.fd = clnt_sock;
 				epoll_ctl(epfd, EPOLL_CTL_ADD, clnt_sock, &event);
 				clntNumber[clntCnt++]=clnt_sock;
-				printf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
-					
+				printf("LOGIN! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
 				for(j=5 ; j < clntCnt+5; j++){
-					sprintf(buf, "신규 접속!! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
+					sprintf(buf, "LOGIN! id -> %d , 접속시간 -> %02d:%02d:%02d \n", cli[clnt_sock].ID, cli[clnt_sock].in_h, cli[clnt_sock].in_m, cli[clnt_sock].in_s);
 					write(j, buf, strlen(buf));
-				
 				}
 				write_log(buf);
 				db_output();
 				
 			}
+            
 			else
 			{
+                memset(buf, 0 , sizeof(buf));
 				str_len=read(ep_events[i].data.fd, buf, BUF_SIZE);
 				if(str_len==0)
 				{
@@ -154,37 +154,38 @@ int main(int argc, char* argv[])
 							ct = time(NULL);
 							tm = *localtime(&ct);
 							for(k=5 ; k < maxfdp1; k++){
-								sprintf(buf, "접속종료!! id -> %d , 종료시간 -> %02d:%02d:%02d\n", cli[ep_events[i].data.fd].ID, tm.tm_hour, tm.tm_min, tm.tm_sec);
-								write(k, buf, strlen(buf));
+								sprintf(state_buf, "접속종료!! id -> %d , 종료시간 -> %02d:%02d:%02d\n", cli[ep_events[i].data.fd].ID, tm.tm_hour, tm.tm_min, tm.tm_sec);
+								write(k, state_buf, strlen(state_buf));
 								
 							}
-							
-							db_delete(ep_events[i].data.fd);
-							cli[ep_events[i].data.fd].ID = 0;
-							cli[ep_events[i].data.fd].in_h = 0;
-							cli[ep_events[i].data.fd].in_m = 0;
-							cli[ep_events[i].data.fd].in_s = 0;
+							db_logout(ep_events[i].data.fd);
+							client_data(ep_events[i].data.fd, 0, 0, 0, 0);
 							clntCnt--;
 							break;
 						}
 					}
 					
-					printf("closed client: %d \n", ep_events[i].data.fd);
-					sprintf(log_buf, "closed client: %d \n", ep_events[i].data.fd);
+					printf("closed client ID: %d \n", ep_events[i].data.fd);
+					sprintf(log_buf, "closed client ID: %d \n", ep_events[i].data.fd);
 					write_log(log_buf);
 					write_log(buf);
 				}
-				sprintf(client_id,"%d",ep_events[i].data.fd);
 				
-				if (strstr(buf, POSSIBLE) != NULL){
-					
-					db_state(ep_events[i].data.fd, POSSIBLE);
-					
+				if (strstr(buf, on_state) != NULL){
+                    write_log(buf);
+					db_state(ep_events[i].data.fd, ONLINE);
+                    sprintf(state_buf, "대화 상태가 %s로 변경되었습니다.\n", ONLINE);
+                    write(ep_events[i].data.fd, state_buf, strlen(state_buf));
+                    write_log(state_buf);
+					break;
 				}
-				if (strstr(buf, IMPOSSIBLE) != NULL){
-					
-					db_state(ep_events[i].data.fd, IMPOSSIBLE);
-					
+				if (strstr(buf, off_state) != NULL){
+                    write_log(buf);
+					db_state(ep_events[i].data.fd, OFFLINE);
+                    sprintf(state_buf, "대화 상태가 %s로 변경되었습니다.\n", OFFLINE);
+                    write(ep_events[i].data.fd, state_buf, strlen(state_buf));
+                    write_log(state_buf);
+					break;
 				}
 				if (strstr(buf, USER_LIST) != NULL){
 					write_log(buf);
@@ -227,11 +228,18 @@ void write_log(char* log)
 	ct = time(NULL);			//현재 시간을 받아옴
 	tm = *localtime(&ct);
 	sprintf(title, "chat_log_%04d%02d%02d.log",tm.tm_year+1900,tm.tm_mon+1,tm.tm_mday);
-	
-
 	FILE *fp = fopen(title, "a");
 	fprintf(fp, "[%02d:%02d:%02d]%s\n", tm.tm_hour, tm.tm_min, tm.tm_sec, log);
 	fclose(fp);
+}
+
+void client_data(int id, int value, int hour, int min, int sec){
+
+    cli[id].ID = value;
+	cli[id].in_h = hour;
+	cli[id].in_m = min;
+	cli[id].in_s = sec;
+
 }
 
 void error_handling(char *buf)
@@ -241,3 +249,4 @@ void error_handling(char *buf)
 	write_log(buf);
 	exit(1);
 } 
+
