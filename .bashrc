@@ -90,8 +90,10 @@ alias cmake='make clean;make'
 alias imake='make clean;make;make install'
 alias cms1='isql -s 192.168.10.36 -u CMSDB -p CMSDB'
 alias dbs1='isql -s 192.168.10.36 -u TASDB -p TASDB'
-alias mdb1='isql -s 121.166.195.239 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
-alias mdb2='isql -s 121.166.195.240 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
+#alias mdb1='isql -s 121.166.195.239 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
+#alias mdb2='isql -s 121.166.195.240 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
+alias mdb1='/altibase/altibase-HDB-server-6.3.1/bin/isql -s 121.166.195.239 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
+alias mdb2='/altibase/altibase-HDB-server-6.3.1/bin/isql -s 121.166.195.240 -u MPXDB -p MPXDB -port 20300 -NLS_USE KO16KSC5601'
 alias   cdsrc='cd $HOME/SRC'
 alias   cdinc='cd $HOME/SRC/INC'
 alias   cddinc='cd $DCPACK_HOME/include'                                                                                      
@@ -121,7 +123,6 @@ alias   mktags='cd $HOME/../;ctags -R /usr/include /usr/local/include/ $HOME/../
 alias   dismc='chkps'
 alias   htop='export TERM=xterm-color;htop'
 alias   top='export TERM=xterm-color;htop'
-alias	cpck="cppcheck -v -D_LINUX_OS -D_REENTRANT --enable=all --language=c "
 
 #
 ulimit -c 1000000
