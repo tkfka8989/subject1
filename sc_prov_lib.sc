@@ -29,19 +29,19 @@ typedef struct _subSvcTbl{
 ///////////////////////////////////////////////////////////////////////////////
 subSvcTbl subSvcList[]={
 	//2016.07.19 v0.99 착신전환 청약 제외.
-	//{1, "MPBX2010", 1, 0},		// 착신전환				, 두번째
+	//{1, "MPBX2010", 1, 0},		// 착신전환					, 두번째
 	{2, "MPBX2020", 2, 1},		// 유무선동시착신허용여부	, 세번째
 	{3, "MPBX2030", 3, 1},		// 돌려주기 허용여부		, 네번째
 	{4, "MPBX2040", 4, 0},		// 3자통화 허용여부			, 다섯번째
 	{5, "MPBX2050", 5, 0},		// 그룹통화 허용여부		, 여섯번째
 	/* START, Ver 1.0.8, 2018.02.01 */
-	//{6, "MPBX2060", 9, 1},		// 무선단말 착신        , 열번째, 부가서비스 코드 없음 	//reserved
+	//{6, "MPBX2060", 9, 1},		// 무선단말 착신            , 열번째, 부가서비스 코드 없음 	//reserved
 	//{7, "MPBX2070", 10, 0},		// 미할당													//reserved
-	{6, "MPBX2060", 6, 0},		// PC 동시착신				, 일곱번째
-	{7, "MPBX2070", 7, 0},		// 패드 동시착신			, 여덟번째
-	/* START, Ver 1.1.2, 2018.09.10 */
-	{8, "MPBX2080", 8, 0},		// 유선전화연결설정			, 아홉번째
-	/* END, Ver 1.1.2, 2018.09.10 */
+	{6, "MPBX2060", 6, 0},      // PC 동시착신
+	{7, "MPBX2070", 7, 0},      // 패드 동시착신
+	/* START, Ver 1.1.2, 2018.10.31 */
+	{8, "MPBX2080", 8, 0},		// 유선전화연결설정
+	/* END, Ver 1.1.2, 2018.10.31 */
 	/* END, Ver 1.0.8, 2018.02.01 */
 	{0, "NULL", 0, 0}
 };
@@ -111,7 +111,7 @@ int _set_subsvc_str(char *sub_svc, int idx, int state)
 	return 1;
 }
 
-/* START, Ver 1.1.2, 2018.09.10 */
+/* START, Ver 1.1.2, 2018.10.31 */
 int _get_cfg_subsvc_status(char *cfg_status){
 	int i = 0;
 	int ret = 0;
@@ -142,20 +142,7 @@ int _get_cfg_subsvc_status(char *cfg_status){
 	return 1;
 
 }
-/* END, Ver 1.1.2, 2018.09.10 */
-
-/* START, Ver 1.1.4, 2022.06.15 */
-int compare_chr_len(int json_len, int column_len, char *iden_name, char *iden_value){
-	/*  길이 초과 에러 보류, 20220629
-	if (json_len > (column_len -1)){
-		_mrs_logprint(DEBUG_1, "%s(%s) TOO LONG. ACCEPTED LENGTH (%d) -------------->[%s]\n", iden_name, iden_value, column_len, iden_value);
-		return -1;
-	}
-	*/
-	return 1;
-
-}
-/* END, Ver 1.1.4, 2022.06.15 */
+/* END, Ver 1.1.2, 2018.10.31 */
 
 void print_mis_para(const char *func_str, char *str)
 {
@@ -179,7 +166,7 @@ void print_null_value(const char *func_str, char *parm_name, char *val)
 3. 고객사 유선전화 이용 유형(NUM_TYPE)         - num_type,
 4. 고객사 유선대표번호(REP_NUM)                - rep_num,
 5. 계약 mPBX 이용자수 (MPBX_USR_NUM)           - max_user_num,
-6. 기업대표번호(mPBX_RN                        - mpbx_rn,
+6. 기업대표번호(mPBX_RN                        - mpbx_rn)
 7. 모상품 상태(TOP_SAID_STATUS)                - cust_status
 ------------------------------------------------------------*/
 int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
@@ -240,7 +227,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "mPBX_CUST_ID");
 	if(!item){ print_mis_para(__func__, "mPBX_CUST_ID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_CUST_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_id), "MPBX_CUST_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(cust_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_CUST_ID ---------------->[%s]\n", cust_id);
 	item=NULL;
@@ -250,7 +236,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "SA_ID");
 	if(!item){ print_mis_para(__func__, "SA_ID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "SA_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(said), "SA_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(said, item->valuestring);
 	_mrs_logprint(DEBUG_5, "SA_ID ----------------------->[%s]\n", said);
 	item=NULL;
@@ -259,7 +244,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "CUST_NAME");
 	if(!item){ print_mis_para(__func__, "CUST_NAME"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "CUST_NAME", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_name), "CUST_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 	_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), cust_name, &len_name);
 	//strcpy(cust_name, item->valuestring);
 	_mrs_logprint(DEBUG_5, "CUST_NAME ------------------->[%s]\n", cust_name);
@@ -269,7 +253,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "NUM_TYPE");
 	if(!item){ print_mis_para(__func__, "NUM_TYPE"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "NUM_TYPE", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(num_type), "NUM_TYPE", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(num_type, item->valuestring);
 	_mrs_logprint(DEBUG_5, "NUM_TYPE -------------------->[%s]\n", num_type);
 	item=NULL;
@@ -278,7 +261,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "REP_NUM");
 	if(!item){ print_mis_para(__func__, "REP_NUM"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "REP_NUM", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(rep_num), "REP_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(rep_num, item->valuestring);
 	_mrs_logprint(DEBUG_5, "REP_NUM --------------------->[%s]\n", rep_num);
 	item=NULL;
@@ -286,7 +268,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	/* REP_LNP_NUM */
 	item = cJSON_GetObjectItem(root, "REP_LNP_NUM");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(rep_lnp_num), "REP_LNP_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(rep_lnp_num, item->valuestring);
 		else rep_lnp_num[0] = 0x00;
@@ -304,7 +285,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 	/* START, Ver 1.1.4, add svc_type, max_user_num json */
 	/* SVC_TYPE */
 	item = cJSON_GetObjectItem(root, "SVC_TYPE");
-	//if(!item){ print_mis_para(__func__, "SVC_TYPE"); goto no_required;}
 	if(item){
 		if(item->type == cJSON_Number) svc_type = item->valueint; else svc_type = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "SVC_TYPE ----------------->[%d]\n", svc_type);
@@ -316,7 +296,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 
 	/* MPBX_USR_NUM */
 	item = cJSON_GetObjectItem(root, "MPBX_USR_NUM");
-	//if(!item){ print_mis_para(__func__, "MPBX_USR_NUM"); goto no_required;}
 	if(item){
         if(item->type == cJSON_Number) max_user_num = item->valueint; else max_user_num = atoi(item->valuestring);
         _mrs_logprint(DEBUG_5, "MPBX_USR_NUM ----------------->[%d]\n", max_user_num);
@@ -374,7 +353,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 						(CUST_ID, CUST_STATUS, CUST_NAME, CID_TEXT, INS_DATE, UPDATE_DATE, GCALL_FLAG, SVC_TYPE, MPBX_USR_NUM)
 				VALUES	(:cust_id, :cust_status, :cust_name, :cid_text, TO_CHAR (sysdate, 'YYYYMMDD'), TO_CHAR (sysdate, 'YYYYMMDDHHMI'), 2, :svc_type, :max_user_num);
 		/*******************************************************************************************************************/
-		/* END, Ver 1.1.4, add svc_type, max_user_num */
 		if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
 		{
 			_mrs_logprint(DEBUG_2, " MPBX PROV - MPX_CustomInfo INSERT FAIL - [%s][%d] %s\n", sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
@@ -382,6 +360,7 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 		}
 		_mrs_logprint(DEBUG_2, " MPBX PROV - MPX_CustomInfo INSERT SUCCESS. CUST_ID[%s], SA_ID[%s] - [%s]\n", cust_id, said, sessionid);
 	}
+	/* END, Ver 1.1.4, add svc_type, max_user_num */
 
 	/* EXT_NUM */
 	cJSON *ext = cJSON_GetObjectItem(root, "EXT_NUM");
@@ -409,8 +388,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 				/* 실패처리 */
 				return ERR_INVALID_DATA;
 			}
-			if(compare_chr_len(strlen(arrexp->valuestring), sizeof(ext_num), "EXT_NUM", arrexp->valuestring)<0){return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(arrexplnp->valuestring), sizeof(ext_lnp_num), "EXT_LNP_NUM", arrexplnp->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(ext_num, 	arrexp->valuestring);
 			strcpy(ext_lnp_num, arrexplnp->valuestring);
 
@@ -468,7 +445,6 @@ int prov_proc_add_cust(int nid, char *sessionid, cJSON *root)
 				/* 실패처리 */
 				return ERR_INVALID_DATA;
 			}
-			if(compare_chr_len(strlen(arrexp->valuestring), sizeof(ext_num), "EXT_NUM", arrexp->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(ext_num, 	arrexp->valuestring);
 
 			nCount = 0;
@@ -615,7 +591,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "mPBX_CUST_ID");
 	if(!item){ print_mis_para(__func__, "mPBX_CUST_ID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_CUST_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_id), "mPBX_CUST_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(cust_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_CUST_ID ---------------->[%s]\n", cust_id);
 	item=NULL;
@@ -665,7 +640,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "SA_ID");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "SA_ID", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(said), "SA_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(said, item->valuestring);
 		_mrs_logprint(DEBUG_5, "SA_ID ----------------------->[%s]\n", said);
 		item=NULL;
@@ -675,7 +649,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "CUST_NAME");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "CUST_NAME", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(cust_name), "CUST_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), cust_name, &len_name);
 		//strcpy(cust_name, item->valuestring);
 		_mrs_logprint(DEBUG_5, "CUST_NAME ------------------->[%s]\n", cust_name);
@@ -686,7 +659,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "NUM_TYPE");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "NUM_TYPE", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(num_type), "NUM_TYPE", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(num_type, item->valuestring);
 		_mrs_logprint(DEBUG_5, "NUM_TYPE -------------------->[%s]\n", num_type);
 		item=NULL;
@@ -696,7 +668,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "REP_NUM");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "REP_NUM", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(rep_num), "REP_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(rep_num, item->valuestring);
 		_mrs_logprint(DEBUG_5, "REP_NUM --------------------->[%s]\n", rep_num);
 		item=NULL;
@@ -705,7 +676,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 	/* REP_LNP_NUM */
 	item = cJSON_GetObjectItem(root, "REP_LNP_NUM");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(rep_lnp_num), "REP_LNP_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(rep_lnp_num, item->valuestring);
 		else rep_lnp_num[0] = 0x00;
@@ -801,8 +771,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 				/* 실패처리 */
 				return ERR_INVALID_DATA;
 			}
-			if(compare_chr_len(strlen(arrexp->valuestring), sizeof(ext_num), "EXT_NUM", arrexp->valuestring)<0){return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(arrexplnp->valuestring), sizeof(ext_lnp_num), "EXT_LNP_NUM", arrexplnp->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(ext_num, 	arrexp->valuestring);
 			strcpy(ext_lnp_num, arrexplnp->valuestring);
 
@@ -859,7 +827,6 @@ int prov_proc_chg_cust(int nid, char *sessionid, cJSON *root)
 				/* 실패처리 */
 				return ERR_INVALID_DATA;
 			}
-			if(compare_chr_len(strlen(arrexp->valuestring), sizeof(ext_num), "EXT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(ext_num, 	arrexp->valuestring);
 
 			nCount = 0;
@@ -973,7 +940,6 @@ int prov_proc_del_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "mPBX_CUST_ID");
 	if(!item) { print_mis_para(__func__, "mPBX_CUST_ID"); goto no_required; }
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_CUST_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_id), "mPBX_CUST_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(cust_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_CUST_ID ---------------->[%s]\n", cust_id);
 	item=NULL;
@@ -1003,7 +969,6 @@ int prov_proc_del_cust(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "SA_ID");
 	if(!item) { print_mis_para(__func__, "SA_ID"); goto no_required; }
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "SA_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(said), "SA_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(said, item->valuestring);
 	_mrs_logprint(DEBUG_5, "SA_ID ----------------------->[%s]\n", said);
 	item=NULL;
@@ -1084,6 +1049,46 @@ int prov_proc_del_cust(int nid, char *sessionid, cJSON *root)
 						nid, sessionid, biz_place_code);
 			}
 
+			/* 사업장별 휴일관리 삭제 */
+			EXEC SQL AT :sessionid
+					DELETE
+					FROM 	MPX_CUSTHOLIDAY
+					WHERE 	BIZ_PLACE_CODE=:biz_place_code;
+			if(sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
+			{
+				_mrs_logprint(DEBUG_2,
+						"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
+						nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
+
+				return ERR_DB_HANDLING;
+			}
+			else
+			{
+				_mrs_logprint(DEBUG_4,
+						"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s]\n",
+						nid, sessionid, biz_place_code);
+			}
+
+			/* 사업장별 근무시간 삭제 */
+			EXEC SQL AT :sessionid
+					DELETE
+					FROM 	MPX_CUSTWORKTIME
+					WHERE 	BIZ_PLACE_CODE=:biz_place_code;
+			if(sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
+			{
+				_mrs_logprint(DEBUG_2,
+						"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
+						nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
+
+				return ERR_DB_HANDLING;
+			}
+			else
+			{
+				_mrs_logprint(DEBUG_4,
+						"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s]\n",
+						nid, sessionid, biz_place_code);
+			}
+
 			/* START, Ver 1.1.4, add delete_user_holiday, delete_user_worktime */			
 			/* 사용자별 휴일관리 삭제 */
 			EXEC SQL AT :sessionid
@@ -1125,46 +1130,6 @@ int prov_proc_del_cust(int nid, char *sessionid, cJSON *root)
 						nid, sessionid, biz_place_code);
 			}
 			/* END, Ver 1.1.4, add delete_user_holiday, delete_user_worktime */
-
-			/* 고객사별 휴일관리 삭제 */
-			EXEC SQL AT :sessionid
-					DELETE
-					FROM 	MPX_CUSTHOLIDAY
-					WHERE 	BIZ_PLACE_CODE=:biz_place_code;
-			if(sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
-			{
-				_mrs_logprint(DEBUG_2,
-						"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
-						nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
-
-				return ERR_DB_HANDLING;
-			}
-			else
-			{
-				_mrs_logprint(DEBUG_4,
-						"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s]\n",
-						nid, sessionid, biz_place_code);
-			}
-
-			/* 고객사별 근무시간 삭제 */
-			EXEC SQL AT :sessionid
-					DELETE
-					FROM 	MPX_CUSTWORKTIME
-					WHERE 	BIZ_PLACE_CODE=:biz_place_code;
-			if(sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
-			{
-				_mrs_logprint(DEBUG_2,
-						"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
-						nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
-
-				return ERR_DB_HANDLING;
-			}
-			else
-			{
-				_mrs_logprint(DEBUG_4,
-						"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s]\n",
-						nid, sessionid, biz_place_code);
-			}
 		}
 		else if(sqlca.sqlcode == SQL_NO_DATA)
 		{
@@ -1248,6 +1213,78 @@ no_required:
 	return ERR_MISSING_PARAMETER;
 }
 
+typedef struct _time_data{
+	int		count;
+	int 	type[100];
+	int 	stime[100];
+	int 	etime[100];
+} TIME_DATA;
+
+int _check_worktime_duplicate(cJSON *root)
+{
+	int i, j, ret, arr_cnt, day_type, stime, etime;
+	TIME_DATA	td;
+	cJSON *subitem=NULL;
+	cJSON *arritem=NULL;
+
+	memset(&td, 0x00, sizeof(TIME_DATA));
+
+	arr_cnt = cJSON_GetArraySize(root);
+	for(i=0; i < arr_cnt; i++)
+	{
+		arritem = cJSON_GetArrayItem(root, i);
+
+		/* WEEK_DAY */
+		subitem = cJSON_GetObjectItem(arritem, "WEEK_DAY");
+		if(subitem){
+			if(subitem->type == cJSON_Number) day_type = subitem->valueint; else day_type = atoi(subitem->valuestring);
+			subitem=NULL;
+		}
+
+		/* START_TIME */
+		subitem = cJSON_GetObjectItem(arritem, "START_TIME");
+		if(subitem){
+			stime = atoi(subitem->valuestring);
+			subitem=NULL;
+		}
+
+		/* END_TIME */
+		subitem = cJSON_GetObjectItem(arritem, "END_TIME");
+		if(subitem){
+			etime = atoi(subitem->valuestring);
+			subitem=NULL;
+		}
+		td.count = arr_cnt;
+		td.type[i] = day_type;
+		td.stime[i] = stime;
+		td.etime[i] = etime;
+	}
+
+	if(arr_cnt == 0)
+		return PROV_SUCCESS;
+
+	for(i=0; i < td.count; i++)
+	{
+		for(j=0; j < td.count; j++)
+		{
+			if(i==j) continue;
+
+			if(td.type[i] == td.type[j])
+			{
+				if((td.stime[i] >= td.stime[j] && td.stime[i] < td.etime[j]) ||
+				(td.etime[i] > td.stime[j] && td.etime[i] <= td.etime[j])){
+					_mrs_logprint(DEBUG_2, " MPX_CustWorkTime Duplicated. DAY_TYPE[%d] - STIME[%d], ETIME[%d] <> SITME[%d], ETIME[%d]\n",
+						td.type[i], td.stime[i], td.etime[i], td.stime[j], td.etime[j]);
+					return ERR_INVALID_DATA;
+				}
+			}
+		}
+	}
+
+	/* CHECK */
+	return PROV_SUCCESS;
+}
+
 /* START, Ver 1.1.4, add user worktime check */
 typedef struct _user_time_data{
 	int		count;
@@ -1322,78 +1359,6 @@ int _check_user_worktime_duplicate(cJSON *root)
 }
 /* END, Ver 1.1.4, add user worktime check */
 
-typedef struct _time_data{
-	int		count;
-	int 	type[100];
-	int 	stime[100];
-	int 	etime[100];
-} TIME_DATA;
-
-int _check_worktime_duplicate(cJSON *root)
-{
-	int i, j, ret, arr_cnt, day_type, stime, etime;
-	TIME_DATA	td;
-	cJSON *subitem=NULL;
-	cJSON *arritem=NULL;
-
-	memset(&td, 0x00, sizeof(TIME_DATA));
-
-	arr_cnt = cJSON_GetArraySize(root);
-	for(i=0; i < arr_cnt; i++)
-	{
-		arritem = cJSON_GetArrayItem(root, i);
-
-		/* WEEK_DAY */
-		subitem = cJSON_GetObjectItem(arritem, "WEEK_DAY");
-		if(subitem){
-			if(subitem->type == cJSON_Number) day_type = subitem->valueint; else day_type = atoi(subitem->valuestring);
-			subitem=NULL;
-		}
-
-		/* START_TIME */
-		subitem = cJSON_GetObjectItem(arritem, "START_TIME");
-		if(subitem){
-			stime = atoi(subitem->valuestring);
-			subitem=NULL;
-		}
-
-		/* END_TIME */
-		subitem = cJSON_GetObjectItem(arritem, "END_TIME");
-		if(subitem){
-			etime = atoi(subitem->valuestring);
-			subitem=NULL;
-		}
-		td.count = arr_cnt;
-		td.type[i] = day_type;
-		td.stime[i] = stime;
-		td.etime[i] = etime;
-	}
-
-	if(arr_cnt == 0)
-		return PROV_SUCCESS;
-
-	for(i=0; i < td.count; i++)
-	{
-		for(j=0; j < td.count; j++)
-		{
-			if(i==j) continue;
-
-			if(td.type[i] == td.type[j])
-			{
-				if((td.stime[i] >= td.stime[j] && td.stime[i] < td.etime[j]) ||
-				(td.etime[i] > td.stime[j] && td.etime[i] <= td.etime[j])){
-					_mrs_logprint(DEBUG_2, " MPX_CustWorkTime Duplicated. DAY_TYPE[%d] - STIME[%d], ETIME[%d] <> SITME[%d], ETIME[%d]\n",
-						td.type[i], td.stime[i], td.etime[i], td.stime[j], td.etime[j]);
-					return ERR_INVALID_DATA;
-				}
-			}
-		}
-	}
-
-	/* CHECK */
-	return PROV_SUCCESS;
-}
-
 /* 사업장 정보 추가 */
 /* 필수항목 정의 ---------------------------------------------
 1. 사업장코드(BIZ_PLACE_CODE)                  - biz_place_code
@@ -1432,8 +1397,8 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	char    etime[4+1];
 	char    rdate[8+1];
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
-	int		accpfx_len;
+	int     short_num_len;
+	int     accpfx_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	/* START, Ver 1.1.4, 2022.06.15 */
 	int		biz_svc_type;
@@ -1489,7 +1454,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "mPBX_CUST_ID");
 	if(!item){ print_mis_para(__func__, "mPBX_CUST_ID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_CUST_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_id), "mPBX_CUST_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(cust_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_CUST_ID ---------------->[%s]\n", cust_id);
 	item=NULL;
@@ -1530,7 +1494,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "BIZ_PLACE_NAME");
 	if(!item){ print_mis_para(__func__, "BIZ_PLACE_NAME"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "BIZ_PLACE_NAME", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(biz_place_name), "BIZ_PLACE_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 	_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), biz_place_name, &len_place_name);
 	//strcpy(biz_place_name, item->valuestring);
 	_mrs_logprint(DEBUG_5, "BIZ_PLACE_NAME -------------->[%s]\n", biz_place_name);
@@ -1540,7 +1503,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "MPBX_RN");
 	if(!item){ print_mis_para(__func__, "MPBX_RN"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "MPBX_RN", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(mpbx_rn), "MPBX_RN", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(mpbx_rn, item->valuestring);
 	_mrs_logprint(DEBUG_5, "MPBX_RN --------------------->[%s]\n", mpbx_rn);
 	item=NULL;
@@ -1549,7 +1511,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "MPBX_ACNT_NUM");
 	if(!item){ print_mis_para(__func__, "MPBX_ACNT_NUM"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "MPBX_ACNT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(account_num), "MPBX_ACNT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(account_num, item->valuestring);
 	_mrs_logprint(DEBUG_5, "MPBX_ACNT_NUM --------------->[%s]\n", account_num);
 	item=NULL;
@@ -1562,7 +1523,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 		if(item->type == cJSON_Number) biz_place_accpfx = item->valueint; else biz_place_accpfx = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_PLACE_ACCPFX ------------>[%d]\n", biz_place_accpfx);
 		*/
-		if(compare_chr_len(strlen(item->valuestring), sizeof(biz_place_accpfx), "BIZ_PLACE_ACCPFX", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(biz_place_accpfx, item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_PLACE_ACCPFX ------------>[%s]\n", biz_place_accpfx);
 		/* END, Ver 1.0.8, 2018.02.01 */
@@ -1580,7 +1540,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	/* PBX_IP */
 	item = cJSON_GetObjectItem(root, "PBX_IP");
 	if(!item){ print_mis_para(__func__, "PBX_IP"); goto no_required;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(pbx_ip), "PBX_IP", item->valuestring)<0){return ERR_INVALID_DATA;}
 	if(strlen(item->valuestring) > 0)
 		strcpy(pbx_ip, item->valuestring);
 	else pbx_ip[0] = 0x00;
@@ -1598,7 +1557,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "CALL_OPT");
 	if(!item){ print_mis_para(__func__, "CALL_OPT"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "CALL_OPT", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(call_opt), "CALL_OPT", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(call_opt, item->valuestring);
 	_mrs_logprint(DEBUG_5, "CALL_OPT -------------------->[%s]\n", call_opt);
 	item=NULL;
@@ -1632,7 +1590,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	/* MEMO_TITLE
 	item = cJSON_GetObjectItem(root, "MEMO_TITLE");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(memo_title), "MEMO_TITLE", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(memo_title, item->valuestring);
 		_mrs_logprint(DEBUG_5, "MEMO_TITLE=[%s]\n", memo_title);
 		item=NULL;
@@ -1640,7 +1597,7 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 	*/
 
 	/* START, Ver 1.0.8, 2018.02.01 */
-	/* SHORT_NUM_LEN */
+	/* SHORT_NUM_LEN */ 
 	item = cJSON_GetObjectItem(root, "SHORT_NUM_LEN");
 	//if(!item){ print_mis_para(__func__, "SHORT_NUM_LEN"); goto no_required;}
 	if(item){
@@ -1683,12 +1640,14 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 
 	/* MPX_BIZ_PLACE_INFO Table에 INSERT */
 	/* START, Ver 1.1.4, add biz_svc_type */
+	/* START, Ver 1.0.8, 2018.02.01 */
 	EXEC SQL AT :sessionid
 		INSERT INTO MPX_BIZ_PLACE_INFO ( BIZ_PLACE_CODE, CUST_ID, BIZ_PLACE_NAM, MPBX_RN, ACCOUNT_NUM, BIZ_PLACE_ACCPFX, OUT_PFX,
 			PBX_IP, PBX_PORT, SUBSVC, CALL_OPT, UPDATE_DATE, INS_DATE, PBX_FLAG, SHORTNUM_LEN, ACCPFX_LEN, BIZ_SVC_TYPE)
 		VALUES( :biz_place_code, :cust_id, :biz_place_name, :mpbx_rn, :account_num, :biz_place_accpfx, :out_pfx,
 			:pbx_ip, :pbx_port, :sub_svc, :call_opt, TO_CHAR (SYSDATE, 'YYYYMMDDHHMISS'), TO_CHAR (SYSDATE, 'YYYYMMDD'), :pbx_flag,
 			:short_num_len, :accpfx_len, :biz_svc_type);
+	/* END, Ver 1.0.8, 2018.02.01 */
 	/* END, Ver 1.1.4, add biz_svc_type */
 	if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA) /* check sqlca.sqlcode */
 	{
@@ -1704,7 +1663,7 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 
 	_mrs_sys_datestring_day(rdate);
 
-	/* 고객사별 휴일 관리 */
+	/* 사업장별 휴일 관리 */
 	/* CUST_HOLIDAY */
 	cJSON *holiday = cJSON_GetObjectItem(root, "CUST_HOLIDAY");
 	if(holiday){
@@ -1717,7 +1676,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 			/* H_DAY */
 			subitem = cJSON_GetObjectItem(arritem, "H_DAY");
 			if(!subitem){ print_mis_para(__func__, "CUST_HOLIDAY - H_DAY"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(h_day), "H_DAY", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(h_day, subitem->valuestring);
 			subitem=NULL;
@@ -1728,7 +1686,7 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 			if(subitem->type == cJSON_Number) m_type = subitem->valueint; else m_type = atoi(subitem->valuestring);
 			subitem=NULL;
 
-			/* REPEAT */
+			/* M_TYPE */
 			subitem = cJSON_GetObjectItem(arritem, "REPEAT");
 			if(!subitem){ print_mis_para(__func__, "CUST_HOLIDAY - REPEAT"); goto no_required;}
 			if(subitem->type == cJSON_Number) repeat = subitem->valueint; else repeat = atoi(subitem->valuestring);
@@ -1736,7 +1694,7 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 
 			_mrs_logprint(DEBUG_5, " INDEX[%d] H_DAY=[%s] : M_TYPE=[%d], REPEAT=[%d]\n", i, h_day, m_type, repeat);
 
-			/* INSERT 고객사별 휴일 관리 */
+			/* INSERT 휴일 관리 */
 			EXEC SQL AT :sessionid INSERT INTO MPX_CUSTHOLIDAY (BIZ_PLACE_CODE, CUST_HOLIDAY, M_TYPE, REPEAT, RDATE) VALUES(:biz_place_code, :h_day, :m_type, :repeat, :rdate);
 			if(sqlca.sqlcode != SQL_SUCCESS)
 			{
@@ -1748,7 +1706,7 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 		} // End of For
 	}
 
-	/* 고객사별 근무 시간 관리 */
+	/* 사업장별 근무 시간 관리 */
 	/* CUST_WORKTIME */
 	cJSON *worktime = cJSON_GetObjectItem(root, "CUST_WORKTIME");
 	if(worktime){
@@ -1770,7 +1728,6 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 			/* START_TIME */
 			subitem = cJSON_GetObjectItem(arritem, "START_TIME");
 			if(!subitem){ print_mis_para(__func__, "CUST_WORKTIME - START_TIME"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(stime), "START_TIME", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(stime, subitem->valuestring);
 			subitem=NULL;
@@ -1778,14 +1735,13 @@ int prov_proc_add_biz_place(int nid, char *sessionid, cJSON *root)
 			/* END_TIME */
 			subitem = cJSON_GetObjectItem(arritem, "END_TIME");
 			if(!subitem){ print_mis_para(__func__, "CUST_WORKTIME - END_TIME"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(etime), "END_TIME", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(etime, subitem->valuestring);
 			subitem=NULL;
 
 			_mrs_logprint(DEBUG_5, " INDEX[%d] DAY_TYPE=[%d] : START_TIME[%s], END_TIME[%s]\n", i, day_type, stime, etime);
 
-			/* INSERT 고객사별 근무시간 관리 */
+			/* INSERT 휴일 관리 */
 			EXEC SQL AT :sessionid INSERT INTO MPX_CUSTWORKTIME (BIZ_PLACE_CODE, DAY_TYPE, STIME, ETIME, RDATE) VALUES(:biz_place_code, :day_type, :stime, :etime, :rdate);
 			if(sqlca.sqlcode != SQL_SUCCESS)
 			{
@@ -1813,7 +1769,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	int		nCount;
 	/* START, Ver 1.0.8, 2018.02.01 */
 	//int		biz_place_accpfx;
-	char	biz_place_accpfx[3+1];
+	char    biz_place_accpfx[3+1];
 	/* END, Ver 1.0.8, 2018.02.01 */
 	int		out_pfx;
 	int		pbx_port;
@@ -1837,8 +1793,8 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	char    etime[4+1];
 	char    rdate[8+1];
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
-	int		accpfx_len;
+	int     short_num_len;
+	int     accpfx_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	/* START, Ver 1.1.4, 2022.06.15 */
 	int		biz_svc_type;
@@ -1866,9 +1822,8 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	memset(stime,			0x00, sizeof(stime));
 	memset(etime,			0x00, sizeof(etime));
 	/* START, Ver 1.0.8, 2018.02.01 */
-	memset(biz_place_accpfx,	0x00, sizeof(biz_place_accpfx));
+	memset(biz_place_accpfx,    0x00, sizeof(biz_place_accpfx));
 	/* END, Ver 1.0.8, 2018.02.01 */
-	
 
 	_mrs_logprint(DEBUG_3, "---------------- Change Biz Place Infomation ---------------\n");
 	if(!root)
@@ -1896,7 +1851,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "mPBX_CUST_ID");
 	if(!item){ print_mis_para(__func__, "mPBX_CUST_ID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_CUST_ID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(cust_id), "CUST_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(cust_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_CUST_ID ---------------->[%s]\n", cust_id);
 	item=NULL;
@@ -1948,7 +1902,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "BIZ_PLACE_NAME");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "BIZ_PLACE_NAME", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(biz_place_name), "BIZ_PLACE_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), biz_place_name, &len_place_name);
 		//strcpy(biz_place_name, item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_PLACE_NAME -------------->[%s]\n", biz_place_name);
@@ -1959,7 +1912,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "MPBX_RN");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "MPBX_RN", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(mpbx_rn), "MPBX_RN", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(mpbx_rn, item->valuestring);
 		_mrs_logprint(DEBUG_5, "MPBX_RN --------------------->[%s]\n", mpbx_rn);
 		item=NULL;
@@ -1969,7 +1921,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "MPBX_ACNT_NUM");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "MPBX_ACNT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(account_num), "MPBX_ACNT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(account_num, item->valuestring);
 		_mrs_logprint(DEBUG_5, "MPBX_ACNT_NUM --------------->[%s]\n", account_num);
 		item=NULL;
@@ -1983,7 +1934,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 		if(item->type == cJSON_Number) biz_place_accpfx = item->valueint; else biz_place_accpfx = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_PLACE_ACCPFX ------------>[%d]\n", biz_place_accpfx);
 		*/
-		if(compare_chr_len(strlen(item->valuestring), sizeof(biz_place_accpfx), "BIZ_PLACE_ACCPFX", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(biz_place_accpfx, item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_PLACE_ACCPFX ------------>[%s]\n", biz_place_accpfx);
 		/* END, Ver 1.0.8, 2018.02.01 */
@@ -2002,7 +1952,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	/* PBX_IP */
 	item = cJSON_GetObjectItem(root, "PBX_IP");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(pbx_ip), "PBX_IP", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(pbx_ip, item->valuestring);
 		else pbx_ip[0] = 0x00;
@@ -2022,7 +1971,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "CALL_OPT");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "CALL_OPT", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(call_opt), "CALL_OPT", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(call_opt, item->valuestring);
 		_mrs_logprint(DEBUG_5, "CALL_OPT -------------------->[%s]\n", call_opt);
 		item=NULL;
@@ -2072,7 +2020,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	/* MEMO_TITLE
 	item = cJSON_GetObjectItem(root, "MEMO_TITLE");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(memo_title), "MEMO_TITLE", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(memo_title, item->valuestring);
 		_mrs_logprint(DEBUG_5, "MEMO_TITLE=[%s]\n", memo_title);
 		item=NULL;
@@ -2107,7 +2054,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 	/* START, Ver 1.1.4, add biz_svc_type json */
 	/* BIZ_SVC_TYPE */
 	item = cJSON_GetObjectItem(root, "BIZ_SVC_TYPE");
-	//if(!item){ print_mis_para(__func__, "BIZ_SVC_TYPE"); goto no_required;}
 	if(item){
 		if(item->type == cJSON_Number) biz_svc_type = item->valueint; else biz_svc_type = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "BIZ_SVC_TYPE ------------>[%d]\n", biz_svc_type);
@@ -2117,6 +2063,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 
 	/* MPX_BIZ_PLACE_INFO Table에 UPDATE */
 	/* START, Ver 1.1.4, add biz_svc_type */
+	/* START, Ver 1.0.8, 2018.02.01 */
 	EXEC SQL AT :sessionid
 		UPDATE 	MPX_BIZ_PLACE_INFO 
 		SET 	BIZ_PLACE_NAM=:biz_place_name, MPBX_RN=:mpbx_rn, ACCOUNT_NUM=:account_num, BIZ_PLACE_ACCPFX=:biz_place_accpfx,
@@ -2125,6 +2072,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 				SHORTNUM_LEN = :short_num_len, ACCPFX_LEN = :accpfx_len, BIZ_SVC_TYPE = :biz_svc_type
 		WHERE 	BIZ_PLACE_CODE=:biz_place_code AND 
 				CUST_ID=:cust_id;
+	/* END, Ver 1.0.8, 2018.02.01 */
 	/* END, Ver 1.1.4, add biz_svc_type */
 	if(sqlca.sqlcode != SQL_SUCCESS)
 	{
@@ -2134,7 +2082,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 
 	_mrs_sys_datestring_day(rdate);
 
-	/* 고객사별 휴일 관리 */
+	/* 사업장별 휴일 관리 */
 	/* CUST_HOLIDAY */
 	cJSON *holiday = cJSON_GetObjectItem(root, "CUST_HOLIDAY");
 	if(holiday){
@@ -2160,7 +2108,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 			/* H_DAY */
 			subitem = cJSON_GetObjectItem(arritem, "H_DAY");
 			if(!subitem){ print_mis_para(__func__, "CUST_HOLIDAY - H_DAY"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(h_day), "H_DAY", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(h_day, subitem->valuestring);
 			subitem=NULL;
@@ -2171,7 +2118,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 			if(subitem->type == cJSON_Number) m_type = subitem->valueint; else m_type = atoi(subitem->valuestring);
 			subitem=NULL;
 
-			/* REPEAT */
+			/* M_TYPE */
 			subitem = cJSON_GetObjectItem(arritem, "REPEAT");
 			if(!subitem){ print_mis_para(__func__, "CUST_HOLIDAY - REPEAT"); goto no_required;}
 			if(subitem->type == cJSON_Number) repeat = subitem->valueint; else repeat = atoi(subitem->valuestring);
@@ -2179,7 +2126,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 
 			_mrs_logprint(DEBUG_5, " INDEX[%d] H_DAY=[%s] : M_TYPE=[%d], REPEAT=[%d]\n", i, h_day, m_type, repeat);
 
-			/* INSERT 고객사별 휴일 관리 */
+			/* INSERT 휴일 관리 */
 			EXEC SQL AT :sessionid INSERT INTO MPX_CUSTHOLIDAY (BIZ_PLACE_CODE, CUST_HOLIDAY, M_TYPE, REPEAT, RDATE) VALUES(:biz_place_code, :h_day, :m_type, :repeat, :rdate);
 			if(sqlca.sqlcode != SQL_SUCCESS)
 			{
@@ -2191,7 +2138,7 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 		} // End of For
 	}
 
-	/* 고객사별 근무 시간 관리 */
+	/* 사업장별 근무 시간 관리 */
 	/* CUST_WORKTIME */
 	cJSON *worktime = cJSON_GetObjectItem(root, "CUST_WORKTIME");
 
@@ -2227,7 +2174,6 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 			/* START_TIME */
 			subitem = cJSON_GetObjectItem(arritem, "START_TIME");
 			if(!subitem){ print_mis_para(__func__, "CUST_WORKTIME - START_TIME"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(stime), "START_TIME", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(stime, subitem->valuestring);
 			subitem=NULL;
@@ -2235,14 +2181,13 @@ int prov_proc_chg_biz_place(int nid, char *sessionid, cJSON *root)
 			/* END_TIME */
 			subitem = cJSON_GetObjectItem(arritem, "END_TIME");
 			if(!subitem){ print_mis_para(__func__, "CUST_WORKTIME - END_TIME"); goto no_required;}
-			if(compare_chr_len(strlen(subitem->valuestring), sizeof(etime), "END_TIME", subitem->valuestring)<0){return ERR_INVALID_DATA;}
 			if(strlen(subitem->valuestring) > 0)
 				strcpy(etime, subitem->valuestring);
 			subitem=NULL;
 
 			_mrs_logprint(DEBUG_5, " INDEX[%d] DAY_TYPE=[%d] : START_TIME[%s], END_TIME[%s]\n", i, day_type, stime, etime);
 
-			/* INSERT 고객사별 근무시간 관리 */
+			/* INSERT 휴일 관리 */
 			EXEC SQL AT :sessionid 
 					INSERT 
 					INTO 	MPX_CUSTWORKTIME 
@@ -2335,6 +2280,44 @@ int prov_proc_del_biz_place(int nid, char *sessionid, cJSON *root)
 				nid, sessionid, biz_place_code);
 	}
 
+	/* 사업장별 휴일관리 삭제 */
+	EXEC SQL AT :sessionid
+			DELETE
+			FROM 	MPX_CUSTHOLIDAY
+			WHERE 	BIZ_PLACE_CODE=:biz_place_code;
+	if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
+	{
+		_mrs_logprint(DEBUG_2,
+				"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
+				nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
+		return ERR_DB_HANDLING;
+	}
+	else
+	{
+		_mrs_logprint(DEBUG_6,
+				"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s]\n",
+				nid, sessionid, biz_place_code);
+	}
+
+	/* 사업장별 근무시간 삭제 */
+	EXEC SQL AT :sessionid
+			DELETE
+			FROM 	MPX_CUSTWORKTIME
+			WHERE 	BIZ_PLACE_CODE=:biz_place_code;
+	if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
+	{
+		_mrs_logprint(DEBUG_2,
+				"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
+				nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
+		return ERR_DB_HANDLING;
+	}
+	else
+	{
+		_mrs_logprint(DEBUG_6,
+				"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s]\n",
+				nid, sessionid, biz_place_code);
+	}
+
 	/* START, Ver 1.1.4, add delete_user_holiday, delete_user_worktime */
 	/* 사용자별 휴일관리 삭제 */
 	EXEC SQL AT :sessionid
@@ -2374,44 +2357,6 @@ int prov_proc_del_biz_place(int nid, char *sessionid, cJSON *root)
 				nid, sessionid, biz_place_code);
 	}
 	/* END, Ver 1.1.4, add delete_user_holiday, delete_user_worktime */
-
-	/* 고객사별 휴일관리 삭제 */
-	EXEC SQL AT :sessionid
-			DELETE
-			FROM 	MPX_CUSTHOLIDAY
-			WHERE 	BIZ_PLACE_CODE=:biz_place_code;
-	if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
-	{
-		_mrs_logprint(DEBUG_2,
-				"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
-				nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
-		return ERR_DB_HANDLING;
-	}
-	else
-	{
-		_mrs_logprint(DEBUG_6,
-				"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTHOLIDAY WHERE BIZ_PLACE_CODE[%s]\n",
-				nid, sessionid, biz_place_code);
-	}
-
-	/* 고객사별 근무시간 삭제 */
-	EXEC SQL AT :sessionid
-			DELETE
-			FROM 	MPX_CUSTWORKTIME
-			WHERE 	BIZ_PLACE_CODE=:biz_place_code;
-	if (sqlca.sqlcode != SQL_SUCCESS && sqlca.sqlcode != SQL_NO_DATA)
-	{
-		_mrs_logprint(DEBUG_2,
-				"????? nid[%d] s_id(%s) MPBX_PROV DELETE FAIL - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s] - [%d][%s]\n",
-				nid, sessionid, biz_place_code, SQLCODE, sqlca.sqlerrm.sqlerrmc);
-		return ERR_DB_HANDLING;
-	}
-	else
-	{
-		_mrs_logprint(DEBUG_6,
-				"nid[%d] s_id(%s) MPBX_PROV DELETE SUCCESS - MPX_CUSTWORKTIME WHERE BIZ_PLACE_CODE[%s]\n",
-				nid, sessionid, biz_place_code);
-	}
 
 	/* 사업장 삭제 */
 	EXEC SQL AT :sessionid
@@ -2650,7 +2595,7 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	//char	user_email[50+1];
 	char	user_name[150+1];
 	char	user_email[300+1];
-	char	position[60+1];
+	char    position[60+1];
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	user_pwd[64+1];
 	char	dev_os_ver[10+1];
@@ -2662,12 +2607,15 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	char    ins_date[14+1];
 	char	uri[64+1];
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
+	int     short_num_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	EXEC SQL END DECLARE SECTION;
 
 	int		svc1=1,svc2=0,svc3=1,svc4=0,svc5=0,svc6=0, svc7=0;
 	int		len_user_name=0;
+	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+	int		len_position=0;
+	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	reason_text[50+1]="";
 	cJSON 	*item=NULL;
 	cJSON 	*subitem=NULL;
@@ -2688,7 +2636,7 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	memset(user_name,		0x00, sizeof(user_name));
 	memset(user_email,		0x00, sizeof(user_email));
 	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
-	memset(position,		0x00, sizeof(position));
+	memset(position,        0x00, sizeof(position));
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	memset(user_pwd,		0x00, sizeof(user_pwd));
 	memset(dev_os_ver,		0x00, sizeof(dev_os_ver));
@@ -2699,7 +2647,6 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	memset(sub_svc,			0x00, sizeof(sub_svc));
 	memset(ins_date,		0x00, sizeof(ins_date));
 	memset(uri,				0x00, sizeof(uri));
-	
 
 	/* USER_KEYID */
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
@@ -2812,10 +2759,10 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	if(!item){ print_mis_para(__func__, "mPBX_MSP"); goto no_required;}
 	if(item->type == cJSON_Number) mpbx_msp = item->valueint; else mpbx_msp = atoi(item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_MSP -------------------->[%d]\n", mpbx_msp);
-	/* START, Ver 1.1.2, 2018.09.10 */
+	/* START, Ver 1.1.2, 2018.10.31 */
 	//if(mpbx_msp < 1 || mpbx_msp > 4)
 	if(mpbx_msp < 1 || mpbx_msp > 5)
-	/* END, Ver 1.1.2, 2018.09.10 */
+	/* END, Ver 1.1.2, 2018.10.31 */
 	{
 		_mrs_logprint(DEBUG_5, "Invalid mPBX_MSP Value -------------------->[%d]\n", mpbx_msp);
 		 return ERR_INVALID_DATA;
@@ -2851,8 +2798,13 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 	/* POSITION */
 	item = cJSON_GetObjectItem(root, "POSITION");
 	if(!item){ print_mis_para(__func__, "POSITION"); goto no_required;}
-	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
-	strcpy(position, item->valuestring);
+	//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
+	if(strlen(item->valuestring) <= 0) { 
+		strcpy(position, item->valuestring);
+	}else{
+		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), position, &len_position);
+	}
+	//strcpy(position, item->valuestring);
 	_mrs_logprint(DEBUG_5, "POSITION ------------------>[%s]\n", position);
 	item=NULL;
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
@@ -2980,14 +2932,14 @@ int prov_proc_add_user(int nid, char *sessionid, cJSON *root)
 		_set_subsvc_str(sub_svc, 6, 1);
 	}
 
-	/* START, Ver 1.1.2, 2018.09.10 */
+	/* START, Ver 1.1.2, 2018.10.31 */
 	char cfg_status[1+1]="";
 	int set_status =0;
 	_get_cfg_subsvc_status(cfg_status);
 	set_status = atoi(cfg_status);
 	_mrs_logprint(DEBUG_5, "CFG SUBSVC STATUS -------------------->[%s][%d]\n", cfg_status,set_status);
 	_set_subsvc_str(sub_svc, 9, set_status);
-	/* END, Ver 1.1.2, 2018.09.10 */
+	/* END, Ver 1.1.2, 2018.10.31 */
 
 	_mrs_sys_datestring_sec(ins_date);
 
@@ -3045,9 +2997,7 @@ no_required:
    7. mPBX통화방식(USER_mPBX_TYPE)
    8. 디바이스 OS 타입(DEV_OS)
    9. 디바이스 OS 버전(DEV_OS_VER)
-   10. 사업장코드(BIZ_PLACE_CODE)
-   11. 사용자별 휴무일(MPX_USER_HOLIDAY)
-   12. 사용자별 근무시간(MPX_USER_WORKTIME)
+   0. 사업장코드(BIZ_PLACE_CODE)
    ------------------------------------------------------------*/
 int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, char *sup)
 {
@@ -3072,7 +3022,7 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	//char	user_email[50+1];
 	char	user_name[150+1];
 	char	user_email[300+1];
-	char	position[60+1];
+	char    position[60+1];
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	user_pwd[64+1];
 	char	dev_os_ver[10+1];
@@ -3085,7 +3035,7 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	char	uri[64+1];
 	char	db_user_id[24+1];
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
+	int     short_num_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	/* START, Ver 1.1.4, 2022.06.15 */
 	char	push_type[255+1];
@@ -3102,6 +3052,9 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* END, Ver 1.1.4, 2022.06.15 */
 	int		svc1=1,svc2=0,svc3=1,svc4=0,svc5=0,svc6=0, svc7=0;
 	int		len_user_name=0;
+	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+	int		len_position=0;
+	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	reason_text[50+1]="";
 	cJSON 	*item=NULL;
 	cJSON 	*subitem=NULL;
@@ -3122,7 +3075,7 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	memset(user_name,		0x00, sizeof(user_name));
 	memset(user_email,		0x00, sizeof(user_email));
 	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
-	memset(position,		0x00, sizeof(position));
+	memset(position,        0x00, sizeof(position));
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	memset(user_pwd,		0x00, sizeof(user_pwd));
 	memset(dev_os_ver,		0x00, sizeof(dev_os_ver));
@@ -3148,7 +3101,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
 	if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 	item=NULL;
@@ -3224,7 +3176,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "mPBX_SHORT_NUM");
 	if(!item){ print_mis_para(__func__, "mPBX_SHORT_NUM"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_SHORT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(short_num), "mPBX_SHORT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(short_num, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_SHORT_NUM -------------->[%s]\n", short_num);
 	item=NULL;
@@ -3250,7 +3201,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "mPBX_M_NUM");
 	if(!item){ print_mis_para(__func__, "mPBX_M_NUM"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_M_NUM", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(m_num), "mPBX_M_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(m_num, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_M_NUM ------------------>[%s]\n", m_num);
 	item=NULL;
@@ -3263,10 +3213,10 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	if(!item){ print_mis_para(__func__, "mPBX_MSP"); goto no_required;}
 	if(item->type == cJSON_Number) mpbx_msp = item->valueint; else mpbx_msp = atoi(item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_MSP -------------------->[%d]\n", mpbx_msp);
-	/* START, Ver 1.1.2, 2018.09.10 */
+	/* START, Ver 1.1.2, 2018.10.31 */
 	//if(mpbx_msp < 1 || mpbx_msp > 4)
 	if(mpbx_msp < 1 || mpbx_msp > 5)
-	/* END, Ver 1.1.2, 2018.09.10 */
+	/* END, Ver 1.1.2, 2018.10.31 */
 	{
 		_mrs_logprint(DEBUG_5, "Invalid mPBX_MSP Value -------------------->[%d]\n", mpbx_msp);
 		 return ERR_INVALID_DATA;
@@ -3277,7 +3227,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "mPBX_EXT_NUM");
 	if(!item){ print_mis_para(__func__, "mPBX_EXT_NUM"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_EXT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(ext_num), "mPBX_EXT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(ext_num, item->valuestring);
 	_mrs_logprint(DEBUG_5, "mPBX_EXT_NUM ---------------->[%s]\n", ext_num);
 	item=NULL;
@@ -3286,7 +3235,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "USER_NAME");
 	if(!item){ print_mis_para(__func__, "USER_NAME"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_NAME", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_name), "USER_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 	_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), user_name, &len_user_name);
 	//strcpy(user_name, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_NAME ------------------->[%s]\n", user_name);
@@ -3296,7 +3244,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	item = cJSON_GetObjectItem(root, "USER_EMAIL");
 	if(!item){ print_mis_para(__func__, "USER_EMAIL"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_EMAIL", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_email), "USER_EMAIL", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_email, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_EMAIL ------------------>[%s]\n", user_email);
 	item=NULL;
@@ -3305,9 +3252,13 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* POSITION */
 	item = cJSON_GetObjectItem(root, "POSITION");
 	if(!item){ print_mis_para(__func__, "POSITION"); goto no_required;}
-	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(position), "POSITION", item->valuestring)<0){return ERR_INVALID_DATA;}
-	strcpy(position, item->valuestring);
+	//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
+	if(strlen(item->valuestring) <= 0) { 
+		strcpy(position, item->valuestring);
+	}else{
+		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), position, &len_position);
+	}
+	//strcpy(position, item->valuestring);
 	_mrs_logprint(DEBUG_5, "POSITION ------------------>[%s]\n", position);
 	item=NULL;
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
@@ -3316,7 +3267,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 #ifdef _NOT_USE_V0_98
 	item = cJSON_GetObjectItem(root, "USER_PWD");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(user_pwd), "USER_PWD", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(user_pwd, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_PWD=[%s]\n", user_pwd);
 		item=NULL;
@@ -3389,7 +3339,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* DEV_OS_VER */
 	item = cJSON_GetObjectItem(root, "DEV_OS_VER");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_os_ver), "DEV_OS_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(dev_os_ver, item->valuestring);
 		_mrs_logprint(DEBUG_5, "DEV_OS_VER ------------------>[%s]\n", dev_os_ver);
 		item=NULL;
@@ -3398,7 +3347,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* DEV_APP_VER */
 	item = cJSON_GetObjectItem(root, "DEV_APP_VER");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_app_ver), "DEV_APP_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(dev_app_ver, item->valuestring);
 		_mrs_logprint(DEBUG_5, "DEV_APP_VER ----------------->[%s]\n", dev_app_ver);
 		item=NULL;
@@ -3407,7 +3355,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* DEV_MODEL */
 	item = cJSON_GetObjectItem(root, "DEV_MODEL");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_model), "DEV_MODEL", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(dev_model, item->valuestring);
 		_mrs_logprint(DEBUG_5, "DEV_MODEL ------------------->[%s]\n", dev_model);
 		item=NULL;
@@ -3416,7 +3363,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* DEV_ID */
 	item = cJSON_GetObjectItem(root, "DEV_ID");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_id), "DEV_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(dev_id, item->valuestring);
 		_mrs_logprint(DEBUG_5, "DEV_ID ---------------------->[%s]\n", dev_id);
 		item=NULL;
@@ -3425,7 +3371,6 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	/* PUSH_KEY */
 	item = cJSON_GetObjectItem(root, "PUSH_KEY");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(push_key), "PUSH_KEY", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(push_key, item->valuestring);
 		_mrs_logprint(DEBUG_5, "PUSH_KEY -------------------->[%s]\n", push_key);
 		item=NULL;
@@ -3461,14 +3406,14 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		_set_subsvc_str(sub_svc, 6, 1);
 	}
 
-	/* START, Ver 1.1.2, 2018.09.10 */
+	/* START, Ver 1.1.2, 2018.10.31 */
 	char cfg_status[1+1]="";
 	int set_status =0;
 	_get_cfg_subsvc_status(cfg_status);
 	set_status = atoi(cfg_status);
 	_mrs_logprint(DEBUG_5, "CFG SUBSVC STATUS -------------------->[%s][%d]\n", cfg_status,set_status);
 	_set_subsvc_str(sub_svc, 9, set_status);
-	/* END, Ver 1.1.2, 2018.09.10 */
+	/* END, Ver 1.1.2, 2018.10.31 */
 
 	_mrs_sys_datestring_sec(ins_date);
 
@@ -3632,7 +3577,7 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 						  :user_email, :position, :user_pwd, :mpbx_type, :multi_dev_key, :dev_type, :dev_os, :dev_os_ver,
 						  :dev_app_ver, :dev_model, :sub_svc, :uri, :uri_type, :ins_date, :ins_date, :push_type, :hd_stat);
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
-	/* START, Ver 1.1.4, 2022.06.15 add PUSH_TYPE, HD_STAT*/
+	/* END, Ver 1.1.4, 2022.06.15 add PUSH_TYPE, HD_STAT*/
 	if(SQLCODE == -69720)
 	{
 		_mrs_logprint(DEBUG_2, "(%s) MPX_USERPROFILE Insert Already exist. USER_ID[%s], PLACE_CODE[%s] - [%s][%d] %s\n", __func__, user_id, biz_place_code, sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
@@ -3736,7 +3681,7 @@ int prov_proc_add_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		return ERR_DB_HANDLING;
 	}
 	_mrs_logprint(DEBUG_5, "(%s) MPX_USERPROFILE Insert Success. USER_ID[%s], PLACE_CODE[%s] - [%s]\n",__func__, user_id, biz_place_code, sessionid);
-	
+
 	return PROV_SUCCESS;
 
 no_required:
@@ -3767,7 +3712,7 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	//char	user_email[50+1];
 	char	user_name[150+1];
 	char	user_email[300+1];
-	char	position[60+1];
+	char    position[60+1];
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	user_pwd[64+1];
 	char	dev_os_ver[10+1];
@@ -3783,11 +3728,14 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	char	uri[64+1];
 	int		user_type;
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
+	int     short_num_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	EXEC SQL END DECLARE SECTION;
 
 	int		len_user_name=0;
+	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+	int		len_position=0;
+	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	cJSON 	*item=NULL;
 	cJSON 	*subitem=NULL;
 	cJSON 	*arritem=NULL;
@@ -3803,7 +3751,7 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	memset(user_name,		0x00, sizeof(user_name));
 	memset(user_email,		0x00, sizeof(user_email));
 	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
-	memset(position,		0x00, sizeof(position));
+	memset(position,        0x00, sizeof(position));
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	memset(user_pwd,		0x00, sizeof(user_pwd));
 	memset(dev_os_ver,		0x00, sizeof(dev_os_ver));
@@ -3940,10 +3888,10 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	if(item){
 		if(item->type == cJSON_Number) mpbx_msp = item->valueint; else mpbx_msp = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "mPBX_MSP -------------------->[%d]\n", mpbx_msp);
-		/* START, Ver 1.1.2, 2018.09.10 */
+		/* START, Ver 1.1.2, 2018.10.31 */
 		//if(mpbx_msp < 1 || mpbx_msp > 4) 
 		if(mpbx_msp < 1 || mpbx_msp > 5) 
-		/* END, Ver 1.1.2, 2018.09.10 */
+		/* END, Ver 1.1.2, 2018.10.31 */
 		{
 			_mrs_logprint(DEBUG_5, "Invalid mPBX_MSP Value -------------------->[%d]\n", mpbx_msp);
 			 return ERR_INVALID_DATA;
@@ -3964,6 +3912,9 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "USER_NAME");
 	if(item){
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_NAME", item->valuestring); return ERR_INVALID_DATA;}
+		/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+		memset(user_name,		0x00, sizeof(user_name));
+		/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), user_name, &len_user_name);
 		//strcpy(user_name, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_NAME ------------------->[%s]\n", user_name);
@@ -3983,8 +3934,15 @@ int prov_proc_chg_user(int nid, char *sessionid, cJSON *root)
 	/* POSITION */
 	item = cJSON_GetObjectItem(root, "POSITION");
 	if(item){
-		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
-		strcpy(position, item->valuestring);
+		//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
+		/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+		memset(position,		0x00, sizeof(position));
+		/* END, Ver 1.1.3, 2019.09.03 add POSITION */
+		if(strlen(item->valuestring) <= 0) { 
+			strcpy(position, item->valuestring);
+		}else{
+			_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), position, &len_position);
+		}
 		_mrs_logprint(DEBUG_5, "POSITION ------------------>[%s]\n", position);
 		item=NULL;
 	}
@@ -4162,7 +4120,7 @@ no_required:
 	return ERR_MISSING_PARAMETER;
 }
 
-
+/* START, ver1.0.5 add */
 /* 사용자 정보 변경 */
 int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, char *sup)
 {
@@ -4187,7 +4145,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	//char	user_email[50+1];
 	char	user_name[150+1];
 	char	user_email[300+1];
-	char	position[60+1];
+	char    position[60+1];
 	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 	char	user_pwd[64+1];
 	char	dev_os_ver[10+1];
@@ -4205,7 +4163,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	char	devTypeList[10+1];
 	char	db_user_id[24+1];
 	/* START, Ver 1.0.8, 2018.02.01 */
-	int		short_num_len;
+	int     short_num_len;
 	/* END, Ver 1.0.8, 2018.02.01 */
 	/* START, Ver 1.1.4, 2022.06.15 */
 	char	push_type[255+1];
@@ -4225,6 +4183,10 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 	int		i, arr_cnt=0, idx;
 	/* END, Ver 1.1.4, 2022.06.15 */
 	int		len_user_name=0;
+	/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+	int		len_position=0;
+	/* END, Ver 1.1.3, 2019.09.03 add POSITION */
+
 	char	charDevType;
 
 	cJSON 	*item=NULL;
@@ -4269,7 +4231,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 
 	cf_type					= 0;
 	user_type				= 0;
-	
 
 	/* START, Ver 1.1.4, add hd_stat json */
 	/* HD_STAT */
@@ -4295,7 +4256,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_KEYID");
 		if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(user_id, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 		item=NULL;
@@ -4371,7 +4331,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_SHORT_NUM");
 		if(!item){ print_mis_para(__func__, "mPBX_SHORT_NUM"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_SHORT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(short_num), "mPBX_SHORT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(short_num, item->valuestring);
 		_mrs_logprint(DEBUG_5, "mPBX_SHORT_NUM -------------->[%s]\n", short_num);
 		item=NULL;
@@ -4397,7 +4356,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_M_NUM");
 		if(!item){ print_mis_para(__func__, "mPBX_M_NUM"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_M_NUM", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(m_num), "mPBX_M_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(m_num, item->valuestring);
 		_mrs_logprint(DEBUG_5, "mPBX_M_NUM ------------------>[%s]\n", m_num);
 		item=NULL;
@@ -4410,10 +4368,10 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		if(!item){ print_mis_para(__func__, "mPBX_MSP"); goto no_required;}
 		if(item->type == cJSON_Number) mpbx_msp = item->valueint; else mpbx_msp = atoi(item->valuestring);
 		_mrs_logprint(DEBUG_5, "mPBX_MSP -------------------->[%d]\n", mpbx_msp);
-		/* START, Ver 1.1.2, 2018.09.10 */
+		/* START, Ver 1.1.2, 2018.10.31 */
 		//if(mpbx_msp < 1 || mpbx_msp > 4)
 		if(mpbx_msp < 1 || mpbx_msp > 5)
-		/* END, Ver 1.1.2, 2018.09.10 */
+		/* END, Ver 1.1.2, 2018.10.31 */
 		{
 			_mrs_logprint(DEBUG_5, "Invalid mPBX_MSP Value -------------------->[%d]\n", mpbx_msp);
 			return ERR_INVALID_DATA;
@@ -4424,7 +4382,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_EXT_NUM");
 		if(!item){ print_mis_para(__func__, "mPBX_EXT_NUM"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_EXT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(ext_num), "mPBX_EXT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(ext_num, item->valuestring);
 		_mrs_logprint(DEBUG_5, "mPBX_EXT_NUM ---------------->[%s]\n", ext_num);
 		item=NULL;
@@ -4433,7 +4390,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_NAME");
 		if(!item){ print_mis_para(__func__, "USER_NAME"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_NAME", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(user_name), "USER_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
 		_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), user_name, &len_user_name);
 		//strcpy(user_name, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_NAME ------------------->[%s]\n", user_name);
@@ -4443,7 +4399,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_EMAIL");
 		if(!item){ print_mis_para(__func__, "USER_EMAIL"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_EMAIL", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(user_email), "USER_EMAIL", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(user_email, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_EMAIL ------------------>[%s]\n", user_email);
 		item=NULL;
@@ -4452,22 +4407,25 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* POSITION */
 		item = cJSON_GetObjectItem(root, "POSITION");
 		if(!item){ print_mis_para(__func__, "POSITION"); goto no_required;}
-		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(position), "POSITION", item->valuestring)<0){return ERR_INVALID_DATA;}
-		strcpy(position, item->valuestring);
+		//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
+		if(strlen(item->valuestring) <= 0) { 
+			strcpy(position, item->valuestring);
+		}else{
+			_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), position, &len_position);
+		}
+		//strcpy(position, item->valuestring);
 		_mrs_logprint(DEBUG_5, "POSITION ------------------>[%s]\n", position);
 		item=NULL;
 		/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 
 		/* USER_PWD */
 		#ifdef _NOT_USE_V0_98
-		item = cJSON_GetObjectItem(root, "USER_PWD");
-		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(user_pwd), "USER_PWD", item->valuestring)<0){return ERR_INVALID_DATA;}
-			strcpy(user_pwd, item->valuestring);
-			_mrs_logprint(DEBUG_5, "USER_PWD=[%s]\n", user_pwd);
-			item=NULL;
-		}
+			item = cJSON_GetObjectItem(root, "USER_PWD");
+			if(item){
+				strcpy(user_pwd, item->valuestring);
+				_mrs_logprint(DEBUG_5, "USER_PWD=[%s]\n", user_pwd);
+				item=NULL;
+			}
 		#endif //_NOT_USE_V0_98
 
 		/* USER_mPBX_TYPE */
@@ -4536,7 +4494,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_OS_VER */
 		item = cJSON_GetObjectItem(root, "DEV_OS_VER");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_os_ver), "DEV_OS_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_os_ver, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_OS_VER ------------------>[%s]\n", dev_os_ver);
 			item=NULL;
@@ -4545,7 +4502,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_APP_VER */
 		item = cJSON_GetObjectItem(root, "DEV_APP_VER");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_app_ver), "DEV_APP_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_app_ver, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_APP_VER ----------------->[%s]\n", dev_app_ver);
 			item=NULL;
@@ -4554,7 +4510,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_MODEL */
 		item = cJSON_GetObjectItem(root, "DEV_MODEL");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_model), "DEV_MODEL", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_model, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_MODEL ------------------->[%s]\n", dev_model);
 			item=NULL;
@@ -4563,7 +4518,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_ID */
 		item = cJSON_GetObjectItem(root, "DEV_ID");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_id), "DEV_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_id, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_ID ---------------------->[%s]\n", dev_id);
 			item=NULL;
@@ -4572,13 +4526,12 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* PUSH_KEY */
 		item = cJSON_GetObjectItem(root, "PUSH_KEY");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(push_key), "PUSH_KEY", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(push_key, item->valuestring);
 			_mrs_logprint(DEBUG_5, "PUSH_KEY -------------------->[%s]\n", push_key);
 			item=NULL;
 		}
 
-		/* START, Ver 1.1.4, add push_type json */
+		/* START, Ver 1.1.4, add push_type, hd_stat json */
 		/* PUSH_TYPE */
 		item = cJSON_GetObjectItem(root, "PUSH_TYPE");
 		if(item){
@@ -4587,7 +4540,16 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 			_mrs_logprint(DEBUG_5, "PUSH_TYPE -------------------->[%s]\n", push_type);
 			item=NULL;
 		}
-		/* END, Ver 1.1.4, add push_type json */
+
+		/* HD_STAT */
+		item = cJSON_GetObjectItem(root, "HD_STAT");
+		if(item){
+			if(compare_chr_len(strlen(item->valuestring), sizeof(hd_stat), "HD_STAT", item->valuestring)<0){return ERR_INVALID_DATA;}
+			strcpy(hd_stat, item->valuestring);
+			_mrs_logprint(DEBUG_5, "HD_STAT -------------------->[%s]\n", hd_stat);
+			item=NULL;
+		}
+		/* END, Ver 1.1.4, add push_type, hd_stat json */
 
 		/* Set Default */
 		_make_subsvc_str(sub_svc);
@@ -4599,14 +4561,14 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 			_set_subsvc_str(sub_svc, 6, 1);
 		}
 
-		/* START, Ver 1.1.2, 2018.09.10 */
+		/* START, Ver 1.1.2, 2018.10.31 */
 		char cfg_status[1+1]="";
 		int set_status =0;
 		_get_cfg_subsvc_status(cfg_status);
 		set_status = atoi(cfg_status);
 		_mrs_logprint(DEBUG_5, "CFG SUBSVC STATUS -------------------->[%s][%d]\n", cfg_status,set_status);
 		_set_subsvc_str(sub_svc, 9, set_status);
-		/* END, Ver 1.1.2, 2018.09.10 */
+		/* END, Ver 1.1.2, 2018.10.31 */
 
 		_mrs_sys_datestring_sec(ins_date);
 
@@ -4751,6 +4713,16 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* MPX_USERPROFILE Table에 INSERT */
 		/* START, Ver 1.1.4, 2022.06.15 add PUSH_TYPE, HD_STAT*/
 		/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+		/*
+		EXEC SQL AT :sessionid
+				INSERT INTO MPX_USERPROFILE
+							( BIZ_PLACE_CODE, SHORT_NUM, USER_ID, USER_STATUS, MOBILE_NUM, MSP, EXT_NUM, USER_NAME,
+							USER_EMAIL, USER_PWD, USER_mPBX_TYPE, MULTI_DEV_KEY, DEV_TYPE, DEV_OS, DEV_OS_VER,
+							DEV_APP_VER, DEV_MODEL, USER_SUBSVC, URI, URI_TYPE, INSERTDATE, UPDATEDATE)
+				VALUES		( :biz_place_code, :short_num, :user_id, :user_state, :m_num, :mpbx_msp, :ext_num, :user_name,
+							:user_email, :user_pwd, :mpbx_type, :multi_dev_key, :dev_type, :dev_os, :dev_os_ver,
+							:dev_app_ver, :dev_model, :sub_svc, :uri, :uri_type, :ins_date, :ins_date);
+		*/
 		EXEC SQL AT :sessionid
 				INSERT INTO MPX_USERPROFILE
 							( BIZ_PLACE_CODE, SHORT_NUM, USER_ID, USER_STATUS, MOBILE_NUM, MSP, EXT_NUM, USER_NAME,
@@ -4760,7 +4732,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 							:user_email, :position, :user_pwd, :mpbx_type, :multi_dev_key, :dev_type, :dev_os, :dev_os_ver,
 							:dev_app_ver, :dev_model, :sub_svc, :uri, :uri_type, :ins_date, :ins_date, :push_type, :hd_stat);
 		/* END, Ver 1.1.3, 2019.09.03 add POSITION */
-		/* START, Ver 1.1.4, 2022.06.15 add PUSH_TYPE, HD_STAT*/
+		/* END, Ver 1.1.4, 2022.06.15 add PUSH_TYPE, HD_STAT*/
 		if(SQLCODE == -69720)
 		{
 			_mrs_logprint(DEBUG_2, "(%s) MPX_USERPROFILE Insert Already exist. USER_ID[%s], PLACE_CODE[%s] - [%s][%d] %s\n", __func__, user_id, biz_place_code, sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
@@ -4856,8 +4828,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 			*/
 
 			return ERR_ALREADY_REGISTERD;
-
-		}
+			}
 		if(sqlca.sqlcode != SQL_SUCCESS)
 		{
 			_mrs_logprint(DEBUG_2, "(%s) MPX_USERPROFILE Insert Fail. USER_ID[%s], PLACE_CODE[%s] - [%s][%d] %s\n", __func__, user_id, biz_place_code, sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
@@ -4958,16 +4929,22 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 			} // End of For
 		}
 		/* END, Ver 1.1.4, add insert_user_holiday, insert_user_worktime */
-		return PROV_SUCCESS;	
+
+		return PROV_SUCCESS;
+
+no_required:
+	return ERR_MISSING_PARAMETER;	
 	}
+
 	/* END, ver1.1.4, 2022.06.15 add hd_stat = init */
-	else{
+
+	else
+	{
 
 		/* USER_KEYID */
 		item = cJSON_GetObjectItem(root, "USER_KEYID");
 		if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 		if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-		if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 		strcpy(user_id, item->valuestring);
 		_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 		item=NULL;
@@ -5049,7 +5026,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_SHORT_NUM");
 		if(item){
 			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_SHORT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(short_num), "mPBX_SHORT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(short_num, item->valuestring);
 			_mrs_logprint(DEBUG_5, "mPBX_SHORT_NUM -------------->[%s]\n", short_num);
 			item=NULL;
@@ -5076,7 +5052,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_M_NUM");
 		if(item){
 			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_M_NUM", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(m_num), "mPBX_M_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(m_num, item->valuestring);
 			_mrs_logprint(DEBUG_5, "mPBX_M_NUM ------------------>[%s]\n", m_num);
 			item=NULL;
@@ -5090,10 +5065,10 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		if(item){
 			if(item->type == cJSON_Number) mpbx_msp = item->valueint; else mpbx_msp = atoi(item->valuestring);
 			_mrs_logprint(DEBUG_5, "mPBX_MSP -------------------->[%d]\n", mpbx_msp);
-			/* START, Ver 1.1.2, 2018.09.10 */
+			/* START, Ver 1.1.2, 2018.10.31 */
 			//if(mpbx_msp < 1 || mpbx_msp > 4) 
 			if(mpbx_msp < 1 || mpbx_msp > 5) 
-			/* END, Ver 1.1.2, 2018.09.10 */
+			/* END, Ver 1.1.2, 2018.10.31 */
 			{
 				_mrs_logprint(DEBUG_5, "Invalid mPBX_MSP Value -------------------->[%d]\n", mpbx_msp);
 				return ERR_INVALID_DATA;
@@ -5105,7 +5080,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "mPBX_EXT_NUM");
 		if(item){
 			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "mPBX_EXT_NUM", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(ext_num), "mPBX_EXT_NUM", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(ext_num, item->valuestring);
 			_mrs_logprint(DEBUG_5, "mPBX_EXT_NUM ---------------->[%s]\n", ext_num);
 			item=NULL;
@@ -5115,7 +5089,9 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_NAME");
 		if(item){
 			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_NAME", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(user_name), "USER_NAME", item->valuestring)<0){return ERR_INVALID_DATA;}
+			/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+			memset(user_name,		0x00, sizeof(user_name));
+			/* END, Ver 1.1.3, 2019.09.03 add POSITION */
 			_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), user_name, &len_user_name);
 			//strcpy(user_name, item->valuestring);
 			_mrs_logprint(DEBUG_5, "USER_NAME ------------------->[%s]\n", user_name);
@@ -5126,7 +5102,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_EMAIL");
 		if(item){
 			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_EMAIL", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(user_email), "USER_EMAIL", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(user_email, item->valuestring);
 			_mrs_logprint(DEBUG_5, "USER_EMAIL ------------------>[%s]\n", user_email);
 			item=NULL;
@@ -5136,9 +5111,16 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* POSITION */
 		item = cJSON_GetObjectItem(root, "POSITION");
 		if(item){
-			if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
-			if(compare_chr_len(strlen(item->valuestring), sizeof(position), "POSITION", item->valuestring)<0){return ERR_INVALID_DATA;}
-			strcpy(position, item->valuestring);
+			//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "POSITION", item->valuestring); return ERR_INVALID_DATA;}
+			/* START, Ver 1.1.3, 2019.09.03 add POSITION */
+			memset(position,		0x00, sizeof(position));
+			/* END, Ver 1.1.3, 2019.09.03 add POSITION */
+			if(strlen(item->valuestring) <= 0) { 
+				strcpy(position, item->valuestring);
+			}else{
+				_conv_from_UTF8_to_eucKR(item->valuestring,strlen(item->valuestring), position, &len_position);
+			}
+			//strcpy(position, item->valuestring);
 			_mrs_logprint(DEBUG_5, "POSITION ------------------>[%s]\n", position);
 			item=NULL;
 		}
@@ -5149,7 +5131,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "USER_PWD");
 		if(item){
 			strcpy(user_pwd, item->valuestring);
-			if(compare_chr_len(strlen(item->valuestring), sizeof(user_pwd), "USER_PWD", item->valuestring)<0){return ERR_INVALID_DATA;}
 			_mrs_logprint(DEBUG_5, "USER_PWD=[%s]\n", user_pwd);
 			item=NULL;
 		}
@@ -5158,7 +5139,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_ID */
 		item = cJSON_GetObjectItem(root, "DEV_ID");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_id), "DEV_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_id, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_ID ---------------------->[%s]\n", dev_id);
 			item=NULL;
@@ -5167,7 +5147,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* PUSH_KEY */
 		item = cJSON_GetObjectItem(root, "PUSH_KEY");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(push_key), "PUSH_KEY", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(push_key, item->valuestring);
 			_mrs_logprint(DEBUG_5, "PUSH_KEY -------------------->[%s]\n", push_key);
 			item=NULL;
@@ -5228,7 +5207,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_OS_VER */
 		item = cJSON_GetObjectItem(root, "DEV_OS_VER");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_os_ver), "DEV_OS_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_os_ver, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_OS_VER ------------------>[%s]\n", dev_os_ver);
 			item=NULL;
@@ -5237,7 +5215,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_APP_VER */
 		item = cJSON_GetObjectItem(root, "DEV_APP_VER");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_app_ver), "DEV_APP_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_app_ver, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_APP_VER ----------------->[%s]\n", dev_app_ver);
 			item=NULL;
@@ -5246,7 +5223,6 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* DEV_MODEL */
 		item = cJSON_GetObjectItem(root, "DEV_MODEL");
 		if(item){
-			if(compare_chr_len(strlen(item->valuestring), sizeof(dev_model), "DEV_MODEL", item->valuestring)<0){return ERR_INVALID_DATA;}
 			strcpy(dev_model, item->valuestring);
 			_mrs_logprint(DEBUG_5, "DEV_MODEL ------------------->[%s]\n", dev_model);
 			item=NULL;
@@ -5257,10 +5233,10 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		item = cJSON_GetObjectItem(root, "PUSH_TYPE");
 		if(item){
 			if(compare_chr_len(strlen(item->valuestring), sizeof(push_type), "PUSH_TYPE", item->valuestring)<0){return ERR_INVALID_DATA;}
-			strcpy(push_type, item->valuestring);
-			_mrs_logprint(DEBUG_5, "PUSH_TYPE -------------------->[%s]\n", push_type);
-			item=NULL;
-		}
+				strcpy(push_type, item->valuestring);
+				_mrs_logprint(DEBUG_5, "PUSH_TYPE -------------------->[%s]\n", push_type);
+				item=NULL;
+			}
 
 		/* HD_STAT */
 		item = cJSON_GetObjectItem(root, "HD_STAT");
@@ -5387,7 +5363,8 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* 사용자별 휴일 관리 */
 		/* MPX_USER_HOLIDAY */
 		cJSON *holiday = cJSON_GetObjectItem(root, "USER_HOLIDAY");
-		if(holiday){
+		if(holiday)
+		{
 			/* 2016.06.17 instert data after delete */
 			EXEC SQL AT :sessionid 
 					DELETE 
@@ -5398,7 +5375,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 				_mrs_logprint(DEBUG_2, " MPBX PROV USER_ID[%s] - MPX_USER_HOLIDAY DELTE FAIL. BIZ_PLACE_CODE[%s] - [%s][%d] %s\n",
 					user_id, biz_place_code, sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
 				/* 실패처리 */
-				return ERR_DB_HANDLING;
+					return ERR_DB_HANDLING;
 			}
 
 			arr_cnt = cJSON_GetArraySize(holiday);
@@ -5414,7 +5391,7 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 				if(strlen(subitem->valuestring) > 0)
 					strcpy(sh, subitem->valuestring);
 				subitem=NULL;
-				
+					
 				/* EH */
 				subitem = cJSON_GetObjectItem(arritem, "EH");
 				if(!subitem){ print_mis_para(__func__, "USER_HOLIDAY - EH"); goto no_required;}
@@ -5441,7 +5418,8 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 		/* MPX_USER_WORKTIME */
 		cJSON *worktime = cJSON_GetObjectItem(root, "USER_WORKTIME");
 
-		if(worktime){
+		if(worktime)
+		{
 			/* Structure에 넣어서 중복 체크해야함 */
 			if(_check_user_worktime_duplicate(worktime) != PROV_SUCCESS){ return ERR_INVALID_DATA; }
 
@@ -5503,15 +5481,15 @@ int prov_proc_chg_user_ref(int nid, char *sessionid, cJSON *root, char *ref, cha
 				}
 			} // End of For
 		}
-		/* END, Ver 1.1.4, add update_user_holiday, update_user_worktime */
+			/* END, Ver 1.1.4, add update_user_holiday, update_user_worktime */
 
 		return PROV_SUCCESS;
-	}
 
 no_required:
 	return ERR_MISSING_PARAMETER;
+	}
 }
-
+/* END, ver1.0.5 add */
 
 int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 {
@@ -5559,13 +5537,12 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
 	if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 	item=NULL;
 
-	/* START, Ver 1.1.4, add push_type */
 	/* UPDATE를 위해 기존 데이터를 가져온다. */
+	/* START, Ver 1.1.4, add push_type */
 	EXEC SQL AT :sessionid 
 			SELECT 	MULTI_DEV_KEY, DEV_TYPE, DEV_OS, DEV_OS_VER, DEV_APP_VER, DEV_MODEL, DEV_ID, PUSH_KEY, DEV_TYPE_LIST, PUSH_TYPE
 			INTO 	:multi_dev_key, :dev_type, :dev_os, :dev_os_ver, :dev_app_ver, :dev_model, :dev_id, :push_key, :devTypeList, :push_type
@@ -5584,7 +5561,6 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	/* DEV_ID */
 	item = cJSON_GetObjectItem(root, "DEV_ID");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_id), "DEV_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(dev_id, item->valuestring);
 		else dev_id[0] = 0x00;
@@ -5595,7 +5571,6 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	/* PUSH_KEY */
 	item = cJSON_GetObjectItem(root, "PUSH_KEY");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(push_key), "PUSH_KEY", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(push_key, item->valuestring);
 		else push_key[0]=0x00;
@@ -5657,7 +5632,6 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	/* DEV_OS_VER */
 	item = cJSON_GetObjectItem(root, "DEV_OS_VER");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_os_ver), "DEV_OS_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(dev_os_ver, item->valuestring);
 		else dev_os_ver[0] = 0x00;
@@ -5668,7 +5642,6 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	/* DEV_APP_VER */
 	item = cJSON_GetObjectItem(root, "DEV_APP_VER");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_app_ver), "DEV_APP_VER", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(dev_app_ver, item->valuestring);
 		else dev_app_ver[0] = 0x00;
@@ -5679,7 +5652,6 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 	/* DEV_MODEL */
 	item = cJSON_GetObjectItem(root, "DEV_MODEL");
 	if(item){
-		if(compare_chr_len(strlen(item->valuestring), sizeof(dev_model), "DEV_MODEL", item->valuestring)<0){return ERR_INVALID_DATA;}
 		if(strlen(item->valuestring) > 0)
 			strcpy(dev_model, item->valuestring);
 		else dev_model[0] = 0x00;
@@ -5717,19 +5689,19 @@ int prov_proc_chg_dev(int nid, char *sessionid, cJSON *root)
 
 	_mrs_sys_datestring_sec(chg_date);
 
-	/* START, Ver 1.1.4, add push_type */
 	/* MPX_USERPROFILE Table에 UPDATE */
+	/* START, Ver 1.1.4, add push_type */
 	/*
 	EXEC SQL AT :sessionid UPDATE MPX_USERPROFILE SET USER_STATUS=:user_state, MOBILE_NUM=:m_num, MSP=:mpbx_msp, EXT_NUM=:ext_num, USER_NAME=:user_name, USER_EMAIL=:user_email, USER_PWD=:user_pwd, USER_mPBX_TYPE=:mpbx_type, MULTI_DEV_KEY=:multi_dev_key, DEV_TYPE=:dev_type, DEV_OS=:dev_os, DEV_OS_VER=:dev_os_ver, DEV_APP_VER=:dev_app_ver, DEV_MODEL=:dev_model, USER_SUBSVC=:sub_svc, URI=:uri, URI_TYPE=:uri_type, INSERTDATE=:ins_date, UPDATEDATE=:chg_date WHERE BIZ_PLACE_CODE=:biz_place_code AND USER_ID=:user_id;
 	*/
 	/* 2016.07.19 v0.99 */
 	EXEC SQL AT :sessionid UPDATE MPX_USERPROFILE SET MULTI_DEV_KEY=:multi_dev_key, DEV_TYPE=:dev_type, DEV_OS=:dev_os, DEV_OS_VER=:dev_os_ver, DEV_APP_VER=:dev_app_ver, DEV_MODEL=:dev_model, UPDATEDATE=:chg_date, DEV_ID = :dev_id, PUSH_KEY = :push_key, PUSH_TYPE = :push_type WHERE USER_ID=:user_id;
+	/* END, Ver 1.1.4, add push_type */
 	if(sqlca.sqlcode != SQL_SUCCESS)
 	{
 		_mrs_logprint(DEBUG_2, " MPBX PROV - MPX_Userprofile UPDATE FAIL. USER_ID[%s] - [%s][%d] %s\n", user_id, sessionid, SQLCODE, sqlca.sqlerrm.sqlerrmc);
 		return ERR_DB_HANDLING;
 	}
-	/* END, Ver 1.1.4, add push_type */
 
 	return PROV_SUCCESS;
 
@@ -5779,11 +5751,11 @@ int prov_proc_del_dev(int nid, char *sessionid, cJSON *root)
 	memset(push_type,		0x00, sizeof(push_type));
 	/* END, Ver 1.1.4, 2022.06.15 */
 
+
 	/* USER_KEYID */
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
 	if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 	item=NULL;
@@ -5887,7 +5859,6 @@ int prov_proc_chg_svc(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
 	if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 	item=NULL;
@@ -5982,36 +5953,29 @@ int prov_proc_del_user(int nid, char *sessionid, cJSON *root)
 	item = cJSON_GetObjectItem(root, "USER_KEYID");
 	if(!item){ print_mis_para(__func__, "USER_KEYID"); goto no_required;}
 	if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "USER_KEYID", item->valuestring); return ERR_INVALID_DATA;}
-	if(compare_chr_len(strlen(item->valuestring), sizeof(user_id), "USER_KEY_ID", item->valuestring)<0){return ERR_INVALID_DATA;}
 	strcpy(user_id, item->valuestring);
 	_mrs_logprint(DEBUG_5, "USER_KEY_ID ----------------->[%s]\n", user_id);
 	item=NULL;
 
-	#ifdef __NOTUSE_20170922_HEO
-		/* START, ver1.0.7, 20170928 delete */
-		/* BIZ_PLACE_CODE */
-		item = cJSON_GetObjectItem(root, "BIZ_PLACE_CODE");
-
-		/* START, 20170922 
-		modified by dduckk
-		do not check BIZ_PLACE_CODE */
-		//if(!item){ print_mis_para(__func__, "BIZ_PLACE_CODE"); goto no_required;}
-		if(item && strlen(item->valuestring)> 0){_mrs_logprint(DEBUG_5, "0. BIZ_PLACE_CODE -------------->[%s]\n", item->valuestring);}
-		/* END, 20170922 */
-
-		/* START, ver1.0.5 modify null */
-		//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "BIZ_PLACE_CODE", item->valuestring); return ERR_INVALID_DATA;}
-		/* END, ver1.0.5 modify null */
-		if (strlen (item->valuestring) > (sizeof (biz_place_code) -1))
-		{
-			_mrs_logprint(DEBUG_1, "BIZ_PLACE_CODE(%s) TOO LONG. ACCEPTED LENGTH (%d) -------------->[%s]\n", item->valuestring, sizeof (biz_place_code) -1);
-			return ERR_INVALID_DATA;
-		}
-		strcpy(biz_place_code, item->valuestring);
-		_mrs_logprint(DEBUG_5, "1. BIZ_PLACE_CODE -------------->[%s]\n", biz_place_code);
-		item=NULL;
-		/* END, ver1.0.7, 20170928 delete */
-	#endif
+#ifdef __NOTUSE_20170922_HEO
+	/* START, ver1.0.7, 20170928 delete */
+	/* BIZ_PLACE_CODE */
+	item = cJSON_GetObjectItem(root, "BIZ_PLACE_CODE");
+	if(!item){ print_mis_para(__func__, "BIZ_PLACE_CODE"); goto no_required;}
+	_mrs_logprint(DEBUG_5, "0. BIZ_PLACE_CODE -------------->[%s]\n", item->valuestring);
+	/* START, ver1.0.5 modify null */
+	//if(strlen(item->valuestring) <= 0) { print_null_value(__func__, "BIZ_PLACE_CODE", item->valuestring); return ERR_INVALID_DATA;}
+	/* END, ver1.0.5 modify null */
+	if (strlen (item->valuestring) > (sizeof (biz_place_code) -1))
+	{
+		_mrs_logprint(DEBUG_1, "BIZ_PLACE_CODE(%s) TOO LONG. ACCEPTED LENGTH (%d) -------------->[%s]\n", item->valuestring, sizeof (biz_place_code) -1);
+		return ERR_INVALID_DATA;
+	}
+	strcpy(biz_place_code, item->valuestring);
+	_mrs_logprint(DEBUG_5, "1. BIZ_PLACE_CODE -------------->[%s]\n", biz_place_code);
+	item=NULL;
+	/* END, ver1.0.7, 20170928 delete */
+#endif
 
 	/* START, Ver 1.0.3, 20170215 modify swhan  */
 	/*
